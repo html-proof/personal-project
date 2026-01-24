@@ -19,6 +19,12 @@ export default function LoginPage() {
         setLoading(true);
         setError("");
 
+        if (!email.endsWith("@cep.ac.in")) {
+            setError("Only @cep.ac.in emails are allowed.");
+            setLoading(false);
+            return;
+        }
+
         try {
             await signIn(email, password);
             router.push("/dashboard");
