@@ -19,6 +19,12 @@ export default function LoginPage() {
         setLoading(true);
         setError("");
 
+        if (!email.endsWith("@cep.ac.in")) {
+            setError("Sorry, restricted access. Only @cep.ac.in emails are allowed.");
+            setLoading(false);
+            return;
+        }
+
 
 
         try {
