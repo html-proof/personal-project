@@ -21,11 +21,7 @@ export default function SignupPage() {
         setLoading(true);
         setError("");
 
-        if (!email.endsWith("@cep.ac.in")) {
-            setError("Only @cep.ac.in emails are allowed for teacher accounts.");
-            setLoading(false);
-            return;
-        }
+
 
         try {
             await signUp(name, email, password);
