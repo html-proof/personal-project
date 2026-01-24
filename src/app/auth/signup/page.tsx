@@ -22,7 +22,7 @@ export default function SignupPage() {
         setError("");
 
         if (!email.endsWith("@cep.ac.in")) {
-            setError("Sorry, restricted access. Only @cep.ac.in emails are allowed.");
+            setError("Access denied.");
             setLoading(false);
             return;
         }
