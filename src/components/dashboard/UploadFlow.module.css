@@ -1,0 +1,150 @@
+.wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.title {
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+    color: var(--text-main);
+}
+
+.section {
+    margin-bottom: 2rem;
+}
+
+.stepTitle {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.select {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-family: inherit;
+    color: var(--text-main);
+}
+
+.select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--bg-gradient-start);
+}
+
+.dropzone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--surface-hover);
+}
+
+.dropzone:hover {
+    border-color: var(--primary);
+    background: var(--surface);
+}
+
+.uploadIcon {
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.dropText {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.dropText span {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.subText {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.preview {
+    background: var(--surface-hover);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.fileInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.iconDoc {
+    color: #ea580c;
+}
+
+.iconVid {
+    color: #7c3aed;
+}
+
+.iconImg {
+    color: #059669;
+}
+
+.fileName {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.fileSize {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.changeBtn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    text-decoration: underline;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.submitBtn {
+    min-width: 150px;
+    justify-content: center;
+}
+
+.errorMsg {
+    color: var(--danger);
+    margin-top: 1rem;
+    font-weight: 500;
+}
+
+.msg {
+    color: var(--success);
+    margin-top: 1rem;
+    font-weight: 500;
+}
