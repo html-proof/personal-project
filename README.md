@@ -1,6 +1,6 @@
 # 🎓 Personal Notes Platform
 
-A modern, centralized e-learning repository built for the College of Engineering Poonjar. This platform streamlines academic resource sharing between faculty and students with a premium, engaging user experience.
+A modern, centralized e-learning repository built for the Notes . This platform streamlines academic resource sharing between faculty and students with a premium, engaging user experience.
 
 ![Project Banner](https://via.placeholder.com/1200x400?text=CEP+Notes+Platform) 
 *(Note: Replace with actual screenshot)*
