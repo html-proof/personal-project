@@ -13,9 +13,12 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
+import { getDatabase } from "firebase/database";
+
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
+const database = getDatabase(app);
 const storage = getStorage(app);
 
-export { app, auth, db, storage };
+export { app, auth, db, database, storage };

@@ -1,0 +1,34 @@
+{
+    "rules": {
+        "departments": {
+            ".indexOn": [
+                "name"
+            ],
+            ".read": true,
+            ".write": "auth != null"
+        },
+        "semesters": {
+            ".indexOn": [
+                "departmentId"
+            ],
+            ".read": true,
+            ".write": "auth != null"
+        },
+        "subjects": {
+            ".indexOn": [
+                "semesterId"
+            ],
+            ".read": true,
+            ".write": "auth != null"
+        },
+        "notes": {
+            ".indexOn": [
+                "subjectId",
+                "uploadedBy",
+                "departmentId"
+            ],
+            ".read": true,
+            ".write": "auth != null"
+        }
+    }
+}
