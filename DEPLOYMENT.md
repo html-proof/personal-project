@@ -33,7 +33,7 @@ Expand the **"Environment Variables"** section and add these (copy the values fr
 
 1. Click **"Deploy"**.
 2. Wait a minute for the build to finish.
-3. 🎉 Your site is live! You will get a URL like `https://cep-poonjar-notes.vercel.app`.
+3. 🎉 Your site is live! You will get a URL like ``
 
 ---
 
