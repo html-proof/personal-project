@@ -40,11 +40,11 @@ export function UndoProvider({ children }: { children: React.ReactNode }) {
             executeNow();
         }
 
-        const DURATION = 60000; // 60 seconds
+        const DURATION = 30000; // 30 seconds
         const expiry = Date.now() + DURATION;
 
         setPendingItem({ id, description, action, onUndo, expiry });
-        setTimeLeft(60);
+        setTimeLeft(30);
 
         // Set final execution timer
         timerRef.current = setTimeout(() => {
@@ -142,7 +142,7 @@ export function UndoProvider({ children }: { children: React.ReactNode }) {
                         left: 0,
                         height: "4px",
                         background: "var(--primary)",
-                        width: `${(timeLeft / 60) * 100}%`,
+                        width: `${(timeLeft / 30) * 100}%`,
                         transition: "width 1s linear",
                         borderRadius: "0 0 0 8px"
                     }} />
