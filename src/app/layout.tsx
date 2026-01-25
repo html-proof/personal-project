@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import Navbar from "@/components/layout/Navbar";
+import AdBanner from "@/components/ads/AdBanner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,6 +31,10 @@ export default function RootLayout({
                 <ThemeProvider>
                     <Navbar />
                     <main style={{ padding: "2rem 0" }}>{children}</main>
+                    {/* Placeholder Ad Slot - Replace '1234567890' with actual Ad Unit ID */}
+                    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                        {/* <AdBanner dataAdSlot="1234567890" /> */}
+                    </div>
                 </ThemeProvider>
                 <Script
                     async
