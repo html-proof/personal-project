@@ -34,7 +34,7 @@ A modern, centralized e-learning repository built for the College of Engineering
 1. **Clone the repository**
    ```bash
    git clone https://github.com/html-proof/personal-project.git
-   cd CEP-POONJAR-Notes
+   cd personal-project
    ```
 
 2. **Install dependencies**
