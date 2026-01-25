@@ -229,7 +229,7 @@ export default function UploadFlow() {
                     onClick={() => document.getElementById("fileInput")?.click()}
                 >
                     <UploadCloud size={48} className={styles.uploadIcon} />
-                    <p className={styles.dropText}>Drag & drop files here or <span>browse</span></p>
+                    <p className={styles.dropText}>Drag & drop files here or <span>browse</span> (up to 50MB)</p>
                     <input
                         type="file"
                         id="fileInput"
