@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     icons: {
         icon: "/logo.png",
     },
+    other: {
+        "google-adsense-account": "ca-pub-8558633671852701",
+    },
 };
 
 import { ThemeProvider } from "@/context/ThemeContext";
