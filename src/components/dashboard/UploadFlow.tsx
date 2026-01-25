@@ -82,9 +82,25 @@ export default function UploadFlow() {
     };
 
     const addFiles = (newFiles: File[]) => {
-        // No validation needed as per requirement (supports all types, no memory limit)
-        setFiles(prev => [...prev, ...newFiles]);
-        setMessage("");
+        const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
+        const validFiles: File[] = [];
+        const invalidFiles: string[] = [];
+
+        newFiles.forEach(file => {
+            if (file.size <= MAX_SIZE) {
+                validFiles.push(file);
+            } else {
+                invalidFiles.push(file.name);
+            }
+        });
+
+        if (invalidFiles.length > 0) {
+            setMessage(`Skipped files larger than 50MB: ${invalidFiles.join(", ")}`);
+        } else {
+            setMessage("");
+        }
+
+        setFiles(prev => [...prev, ...validFiles]);
     };
 
     const removeFile = (index: number) => {
