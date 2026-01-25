@@ -18,9 +18,9 @@ export const metadata: Metadata = {
     },
 };
 
-import { ThemeProvider } from "@/context/ThemeContext";
-
 import DisableDevTools from "@/components/common/DisableDevTools";
+import { UndoProvider } from "@/context/UndoContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 export default function RootLayout({
     children,
@@ -32,12 +32,14 @@ export default function RootLayout({
             <body className={inter.className}>
                 <DisableDevTools />
                 <ThemeProvider>
-                    <Navbar />
-                    <main style={{ padding: "2rem 0" }}>{children}</main>
-                    {/* Placeholder Ad Slot - Replace '1234567890' with actual Ad Unit ID */}
-                    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                        {/* <AdBanner dataAdSlot="1234567890" /> */}
-                    </div>
+                    <UndoProvider>
+                        <Navbar />
+                        <main style={{ padding: "2rem 0" }}>{children}</main>
+                        {/* Placeholder Ad Slot - Replace '1234567890' with actual Ad Unit ID */}
+                        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                            {/* <AdBanner dataAdSlot="1234567890" /> */}
+                        </div>
+                    </UndoProvider>
                 </ThemeProvider>
                 <Script
                     async

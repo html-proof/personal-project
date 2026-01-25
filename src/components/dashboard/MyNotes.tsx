@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { getUserNotes, deleteNote } from "@/lib/firebase/firestore"; // Added deleteNote import if we want to add delete later, but sticking to request for now
 import { useAuth } from "@/lib/firebase/auth";
+import { useUndo } from "@/context/UndoContext";
 import { Eye, Download, Share2, FileText, Film, Image as ImageIcon, Trash2 } from "lucide-react";
 import styles from "./MyNotes.module.css";
 
 export default function MyNotes() {
     const { user } = useAuth();
+    const { scheduleDelete } = useUndo();
     const [notes, setNotes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -39,15 +41,27 @@ export default function MyNotes() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this file?")) return;
-        try {
-            // Note: Ideally we should also delete from Storage, but for now we just remove the Firestore record
-            await deleteNote(id);
-            setNotes(notes.filter(n => n.id !== id));
-        } catch (error) {
-            console.error(error);
-            alert("Failed to delete");
-        }
+        // Optimistic UI Update
+        const noteToDelete = notes.find(n => n.id === id);
+        if (!noteToDelete) return;
+
+        // Remove from UI immediately
+        setNotes(prev => prev.filter(n => n.id !== id));
+
+        // Define Undo Callback
+        const handleUndo = () => {
+            setNotes(prev => [noteToDelete, ...prev]);
+        };
+
+        // Schedule Logic
+        scheduleDelete(
+            id,
+            async () => {
+                await deleteNote(id);
+            },
+            `Note '${noteToDelete.title}'`,
+            handleUndo
+        );
     };
 
     const getPreview = (note: any) => {

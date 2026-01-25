@@ -9,11 +9,13 @@ import {
 } from "@/lib/firebase/firestore";
 import { useAuth } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
+import { useUndo } from "@/context/UndoContext";
 import { ArrowLeft, Plus, ChevronRight, Pencil, Trash2, FileText, X } from "lucide-react";
 
 export default function ManageStructurePage() {
     const { user, loading } = useAuth();
     const router = useRouter();
+    const { scheduleDelete } = useUndo();
 
     const [departments, setDepartments] = useState<any[]>([]);
     const [semesters, setSemesters] = useState<any[]>([]);
@@ -111,25 +113,53 @@ export default function ManageStructurePage() {
     }
 
     async function handleDelete(item: any, type: 'dept' | 'sem' | 'sub' | 'note') {
-        if (!confirm("Are you sure? This cannot be undone.")) return;
-        try {
-            if (type === 'dept') {
+        // Optimistic UI Update & Undo Callback setup
+        let undoCallback: () => void = () => { };
+
+        if (type === 'dept') {
+            setDepartments(prev => prev.filter(d => d.id !== item.id));
+            if (selectedDept?.id === item.id) setSelectedDept(null);
+            undoCallback = () => {
+                setDepartments(prev => [...prev, item].sort((a, b) => a.name.localeCompare(b.name)));
+                // optionally restore selection if desired, but might be confusing
+            };
+
+            scheduleDelete(item.id, async () => {
                 await deleteDepartment(item.id);
-                if (selectedDept?.id === item.id) setSelectedDept(null);
-                await loadDepartments();
-            } else if (type === 'sem') {
+            }, `Department '${item.name}'`, undoCallback);
+
+        } else if (type === 'sem') {
+            setSemesters(prev => prev.filter(s => s.id !== item.id));
+            if (selectedSem?.id === item.id) setSelectedSem(null);
+            undoCallback = () => {
+                setSemesters(prev => [...prev, item].sort((a, b) => a.name.localeCompare(b.name)));
+            };
+
+            scheduleDelete(item.id, async () => {
                 await deleteSemester(item.id);
-                if (selectedSem?.id === item.id) setSelectedSem(null);
-                await loadSemesters(selectedDept.id);
-            } else if (type === 'sub') {
+            }, `Semester '${item.name}'`, undoCallback);
+
+        } else if (type === 'sub') {
+            setSubjects(prev => prev.filter(s => s.id !== item.id));
+            if (selectedSub?.id === item.id) setSelectedSub(null);
+            undoCallback = () => {
+                setSubjects(prev => [...prev, item].sort((a, b) => a.name.localeCompare(b.name)));
+            };
+
+            scheduleDelete(item.id, async () => {
                 await deleteSubject(item.id);
-                if (selectedSub?.id === item.id) setSelectedSub(null);
-                await loadSubjects(selectedSem.id);
-            } else if (type === 'note') {
+            }, `Subject '${item.name}'`, undoCallback);
+
+        } else if (type === 'note') {
+            setNotes(prev => prev.filter(n => n.id !== item.id));
+            undoCallback = () => {
+                setNotes(prev => [item, ...prev]); // Prepend assuming desc order
+            };
+
+            scheduleDelete(item.id, async () => {
                 await deleteNote(item.id);
-                await loadNotes(selectedSub.id);
-            }
-        } catch (e) { console.error(e); alert("Failed to delete."); }
+            }, `Note '${item.title}'`, undoCallback);
+        }
     }
 
     const startEdit = (item: any, type: string) => {
