@@ -18,6 +18,7 @@ export default function DashboardPage() {
             } else if (!user.emailVerified) {
                 router.push("/auth/verify-email");
             }
+
         }
     }, [user, loading, router]);
 

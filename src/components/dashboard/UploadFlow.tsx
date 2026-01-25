@@ -8,7 +8,7 @@ import {
     getSubjects,
     createNote
 } from "@/lib/firebase/firestore";
-import { uploadFile } from "@/lib/firebase/storage";
+import { uploadFile } from "@/lib/supabase/storage";
 import { useAuth } from "@/lib/firebase/auth";
 import styles from "./UploadFlow.module.css";
 

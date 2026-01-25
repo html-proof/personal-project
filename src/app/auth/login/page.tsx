@@ -20,10 +20,12 @@ export default function LoginPage() {
         setError("");
 
         if (!email.endsWith("@cep.ac.in")) {
-            setError("Access denied.");
+            setError("Access denied. Only @cep.ac.in emails are allowed.");
             setLoading(false);
             return;
         }
+
+
 
 
 

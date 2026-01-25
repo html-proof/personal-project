@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.91.1",
     "clsx": "^2.1.1",
     "firebase": "^12.8.0",
     "lucide-react": "^0.563.0",
