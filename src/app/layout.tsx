@@ -20,6 +20,8 @@ export const metadata: Metadata = {
 
 import { ThemeProvider } from "@/context/ThemeContext";
 
+import DisableDevTools from "@/components/common/DisableDevTools";
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -28,6 +30,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={inter.className}>
+                <DisableDevTools />
                 <ThemeProvider>
                     <Navbar />
                     <main style={{ padding: "2rem 0" }}>{children}</main>
