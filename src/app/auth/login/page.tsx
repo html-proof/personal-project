@@ -20,7 +20,7 @@ export default function LoginPage() {
         setError("");
 
         if (!email.endsWith("@cep.ac.in")) {
-            setError("Access denied");
+            setError("Access denied. You are not authorized to access this application.");
             setLoading(false);
             return;
         }
