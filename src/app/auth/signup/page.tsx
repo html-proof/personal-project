@@ -21,13 +21,16 @@ export default function SignupPage() {
         setLoading(true);
         setError("");
 
+
+
+
+
+        // Secure Domain Validation
         if (!email.endsWith("@cep.ac.in")) {
-            setError("Access denied.");
+            setError("Access Denied. You are not authorized to access this application.");
             setLoading(false);
             return;
         }
-
-
 
         try {
             await signUp(name, email, password);

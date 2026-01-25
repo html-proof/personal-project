@@ -30,16 +30,14 @@ export function useAuth() {
 // Sign In
 export const signIn = (email: string, pass: string) => {
 
-    if (!email.endsWith("@cep.ac.in")) {
-        throw new Error("Access denied.");
-    }
     return signInWithEmailAndPassword(auth, email, pass);
 };
 
 // Sign Up (for initial seeding or admin use)
 export const signUp = async (name: string, email: string, pass: string) => {
+
     if (!email.endsWith("@cep.ac.in")) {
-        throw new Error("Access denied.");
+        throw new Error("ACCESS_DENIED");
     }
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(userCredential.user, { displayName: name });

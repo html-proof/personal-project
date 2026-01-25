@@ -6,6 +6,8 @@ import { useEffect } from "react";
 import UploadFlow from "@/components/dashboard/UploadFlow";
 import MyNotes from "@/components/dashboard/MyNotes";
 import { Home } from "lucide-react";
+import { collection, query, where, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
 
 export default function DashboardPage() {
     const { user, loading } = useAuth();
@@ -17,8 +19,8 @@ export default function DashboardPage() {
                 router.push("/auth/login");
             } else if (!user.emailVerified) {
                 router.push("/auth/verify-email");
+                // Normal redirect check is done
             }
-
         }
     }, [user, loading, router]);
 
