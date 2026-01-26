@@ -31,7 +31,7 @@ export default function Home() {
                         marginBottom: "0.5rem",
                         display: "block"
                     }}>
-                        Welcome to CEP
+                        Welcome to College of Engineering Poonjar
                     </span>
                     <h1 style={{
                         fontSize: "clamp(2.5rem, 5vw, 4rem)",
@@ -41,18 +41,18 @@ export default function Home() {
                         marginBottom: "1rem",
                         color: "var(--text-main)"
                     }}>
-                        Smart Learning,<br />
+                        Elevating Academic Excellence<br />
                         <span style={{
                             background: "linear-gradient(135deg, var(--primary) 0%, #a855f7 100%)",
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent"
                         }}>
-                            Simplified.
+                            Through Digital Innovation.
                         </span>
                     </h1>
                     <div style={{ display: "flex", gap: "1rem", justifyContent: "center", marginTop: "1.5rem" }}>
                         <button onClick={scrollToBrowse} className="btn btn-primary">
-                            Browse Materials
+                            Explore Resources
                         </button>
                     </div>
                 </div>
@@ -69,18 +69,18 @@ export default function Home() {
                     }}>
                         <FeatureCard
                             icon={<BookOpen size={24} color="var(--primary)" />}
-                            title="Curated Notes"
-                            desc="Organized by Department, Semester, and Subject for easy access."
+                            title="Academic Excellence"
+                            desc="Comprehensive study materials meticulously curated by expert faculty to align strictly with your curriculum standards."
                         />
                         <FeatureCard
                             icon={<Layers size={24} color="#a855f7" />} /* Purple */
-                            title="Structured Content"
-                            desc="Drill down efficiently to find exactly what you need in seconds."
+                            title="Streamlined Navigation"
+                            desc="Intuitively structured content hierarchy enabling instant access to department-specific resources and semester archives."
                         />
                         <FeatureCard
                             icon={<Users size={24} color="#ec4899" />} /* Pink */
-                            title="Community Driven"
-                            desc="Resources shared by trusted faculty members."
+                            title="Faculty-Verified"
+                            desc="Trustworthy learning assets maintained directly by academic departments ensuring content accuracy and educational relevance."
                         />
                     </div>
                 </div>
