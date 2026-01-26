@@ -41,11 +41,15 @@ export default function Home() {
                         marginBottom: "1rem",
                         color: "var(--text-main)"
                     }}>
-                        Elevating Academic Excellence<br />
-                        <span style={{
-                            background: "linear-gradient(135deg, var(--primary) 0%, #a855f7 100%)",
+                        <span className="animate-fade-in-left" style={{ display: "inline-block" }}>
+                            Elevating Academic Excellence
+                        </span>
+                        <br />
+                        <span className="animate-gradient animate-fade-in-right delay-200" style={{
+                            background: "linear-gradient(135deg, var(--primary) 0%, #a855f7 50%, var(--primary) 100%)",
                             WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent"
+                            WebkitTextFillColor: "transparent",
+                            display: "inline-block"
                         }}>
                             Through Digital Innovation.
                         </span>
