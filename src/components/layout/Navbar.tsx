@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth, signOut } from "@/lib/firebase/auth";
@@ -12,8 +13,36 @@ export default function Navbar() {
     const { theme, toggleTheme } = useTheme();
     const pathname = usePathname();
 
+    const [isVisible, setIsVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    useEffect(() => {
+        const controlNavbar = () => {
+            if (typeof window !== 'undefined') {
+                if (window.scrollY > lastScrollY && window.scrollY > 100) { // Scroll Down > 100px
+                    setIsVisible(false);
+                } else { // Scroll Up
+                    setIsVisible(true);
+                }
+                setLastScrollY(window.scrollY);
+            }
+        };
+
+        window.addEventListener('scroll', controlNavbar);
+
+        return () => {
+            window.removeEventListener('scroll', controlNavbar);
+        };
+    }, [lastScrollY]);
+
     return (
-        <nav className={styles.nav}>
+        <nav
+            className={styles.nav}
+            style={{
+                transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
+                transition: 'transform 0.3s ease-in-out'
+            }}
+        >
             <div className={`container ${styles.container}`}>
                 <Link href="/" className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <img src="/logo.png" alt="CEP Logo" style={{ height: '40px', width: 'auto' }} />
