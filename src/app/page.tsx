@@ -106,7 +106,7 @@ function FeatureCard({ icon, title, desc }: { icon: any, title: string, desc: st
         <div className="card animate-fade-in delay-200" style={{
             padding: "2rem",
             border: "1px solid var(--border)",
-            background: "rgba(255,255,255,0.5)", /* Slightly transparent on light */
+            background: "var(--glass-surface)",
             backdropFilter: "blur(10px)",
             textAlign: "left",
             transition: "transform 0.2s"
