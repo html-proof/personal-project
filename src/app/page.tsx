@@ -17,7 +17,7 @@ export default function Home() {
 
             {/* 1. Hero Section - Compact */}
             <section style={{
-                padding: "3rem 2rem",
+                padding: "4rem 1rem 2rem",
                 textAlign: "center",
                 position: "relative"
             }}>
@@ -63,13 +63,12 @@ export default function Home() {
             </section>
 
             {/* 2. Compact Features / Stats Grid */}
-            <section style={{ padding: "4rem 2rem", background: "var(--surface)" }}>
+            <section style={{ padding: "0 1rem 3rem" }}>
                 <div className="container">
                     <div style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-                        gap: "2rem",
-                        marginTop: "-4rem", /* Overlap overlap effect if desired, but let's keep it simple tight */
+                        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                        gap: "1.5rem",
                     }}>
                         <FeatureCard
                             icon={<BookOpen size={24} color="var(--primary)" />}
@@ -91,7 +90,7 @@ export default function Home() {
             </section>
 
             {/* 3. Main Browser Area */}
-            <div id="browse" style={{ padding: "4rem 2rem 6rem", background: "linear-gradient(to bottom, var(--surface) 0%, var(--bg-gradient-end) 100%)" }}>
+            <div id="browse" style={{ padding: "2rem 1rem 4rem", background: "linear-gradient(to bottom, rgba(0,0,0,0.02) 0%, var(--bg-gradient-end) 100%)" }}>
                 <div className="container">
                     <NotesBrowser />
                 </div>
