@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 
 interface WeatherData {
     isDay: boolean;
@@ -12,6 +13,7 @@ interface WeatherData {
 export default function DynamicBackground() {
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
+    const { theme } = useTheme();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -58,9 +60,17 @@ export default function DynamicBackground() {
         const { isDay, weatherCode } = weather;
         const isRainy = weatherCode >= 51 && weatherCode <= 67 || weatherCode >= 80 && weatherCode <= 82;
 
-        if (isRainy) return { background: "linear-gradient(to bottom, #334155, #64748b)" }; // Rainy Grey
-        if (isDay) return { background: "linear-gradient(to bottom, #60a5fa, #bfdbfe)" };   // Day Blue
-        return { background: "linear-gradient(to bottom, #0f172a, #1e293b)" };              // Night Dark
+        if (theme === 'light') {
+            // Light Mode - Keep everything relatively bright/visible
+            if (isRainy) return { background: "linear-gradient(to bottom, #cbd5e1, #94a3b8)" }; // Light Rain
+            if (isDay) return { background: "linear-gradient(to bottom, #dbeafe, #93c5fd)" };   // Bright Day
+            return { background: "linear-gradient(to bottom, #e2e8f0, #cbd5e1)" };              // Bright Night (Moonlight)
+        } else {
+            // Dark Mode - Keep everything dark/deep
+            if (isRainy) return { background: "linear-gradient(to bottom, #1e293b, #334155)" }; // Dark Rain
+            if (isDay) return { background: "linear-gradient(to bottom, #1e3a8a, #1d4ed8)" };   // Deep Blue Day
+            return { background: "linear-gradient(to bottom, #0f172a, #020617)" };              // Deep Night
+        }
     };
 
     const isRainy = weather && (weather.weatherCode >= 51 && weather.weatherCode <= 67 || weather.weatherCode >= 80 && weather.weatherCode <= 82);
