@@ -3,6 +3,7 @@
 import Link from "next/link";
 import NotesBrowser from "@/components/public/NotesBrowser";
 import AdBanner from "@/components/ads/AdBanner";
+import DynamicBackground from "@/components/layout/DynamicBackground";
 import { ArrowDown, BookOpen, Layers, Users } from "lucide-react";
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
 
     return (
         <main className="hero-bg" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+            <DynamicBackground />
 
             {/* 1. Hero Section - Compact */}
             <section style={{
