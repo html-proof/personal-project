@@ -29,7 +29,6 @@ export function useAuth() {
 
 // Sign In
 export const signIn = (email: string, pass: string) => {
-
     if (!email.endsWith("@cep.ac.in")) {
         throw new Error("ACCESS_DENIED");
     }

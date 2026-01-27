@@ -70,6 +70,10 @@ export default function Navbar() {
                         <>
                             {user ? (
                                 <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: '1rem' }}>
+                                        <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{user.displayName || user.email?.split('@')[0]}</span>
+                                        <span style={{ fontSize: '0.7rem', opacity: 0.8 }}>Teacher</span>
+                                    </div>
                                     <Link href="/dashboard" className="btn btn-outline" style={{ border: 'none' }}>
                                         <LayoutDashboard size={18} /> Dashboard
                                     </Link>
@@ -86,6 +90,6 @@ export default function Navbar() {
                     )}
                 </div>
             </div>
-        </nav>
+        </nav >
     );
 }
