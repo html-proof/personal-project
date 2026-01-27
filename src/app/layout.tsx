@@ -22,11 +22,15 @@ import DisableDevTools from "@/components/common/DisableDevTools";
 import { UndoProvider } from "@/context/UndoContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 
+
+
 export default function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const AmpAutoAds = 'amp-auto-ads' as any;
+
     return (
         <html lang="en">
             <head>
@@ -44,10 +48,9 @@ export default function RootLayout({
                 />
             </head>
             <body className={inter.className}>
-                {/* @ts-ignore */}
-                <amp-auto-ads type="adsense"
+                <AmpAutoAds type="adsense"
                     data-ad-client="ca-pub-6253589071371136">
-                </amp-auto-ads>
+                </AmpAutoAds>
                 <DisableDevTools />
                 <ThemeProvider>
                     <UndoProvider>
