@@ -36,8 +36,18 @@ export default function RootLayout({
                     crossOrigin="anonymous"
                     strategy="afterInteractive"
                 />
+                <Script
+                    async
+                    custom-element="amp-auto-ads"
+                    src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"
+                    strategy="afterInteractive"
+                />
             </head>
             <body className={inter.className}>
+                {/* @ts-ignore */}
+                <amp-auto-ads type="adsense"
+                    data-ad-client="ca-pub-6253589071371136">
+                </amp-auto-ads>
                 <DisableDevTools />
                 <ThemeProvider>
                     <UndoProvider>
