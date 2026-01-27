@@ -44,8 +44,8 @@ export default function RootLayout({
                         <Navbar />
                         <main style={{ padding: "2rem 0" }}>{children}</main>
                         {/* Placeholder Ad Slot - Replace '1234567890' with actual Ad Unit ID */}
-                        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                            {/* <AdBanner dataAdSlot="1234567890" /> */}
+                        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center' }}>
+                            <AdBanner dataAdSlot="3325660893" />
                         </div>
                     </UndoProvider>
                 </ThemeProvider>
