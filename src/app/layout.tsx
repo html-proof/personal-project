@@ -29,6 +29,14 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
+            <head>
+                <Script
+                    async
+                    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6253589071371136"
+                    crossOrigin="anonymous"
+                    strategy="afterInteractive"
+                />
+            </head>
             <body className={inter.className}>
                 <DisableDevTools />
                 <ThemeProvider>
@@ -41,11 +49,6 @@ export default function RootLayout({
                         </div>
                     </UndoProvider>
                 </ThemeProvider>
-                <Script
-                    async
-                    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6253589071371136"
-                    crossOrigin="anonymous"
-                />
             </body>
         </html>
     );
