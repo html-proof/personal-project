@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import NotesBrowser from "@/components/public/NotesBrowser";
+import AdBanner from "@/components/ads/AdBanner";
 import { ArrowDown, BookOpen, Layers, Users } from "lucide-react";
 
 export default function Home() {
@@ -87,7 +88,13 @@ export default function Home() {
                         />
                     </div>
                 </div>
+
             </section>
+
+            {/* Ad Section */}
+            <div className="container" style={{ marginBottom: "2rem", display: 'flex', justifyContent: 'center' }}>
+                <AdBanner dataAdSlot="3325660893" />
+            </div>
 
             {/* 3. Main Browser Area */}
             <div id="browse" style={{ padding: "2rem 1rem 4rem", background: "linear-gradient(to bottom, rgba(0,0,0,0.02) 0%, var(--bg-gradient-end) 100%)" }}>
