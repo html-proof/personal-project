@@ -60,9 +60,11 @@ export default function RootLayout({
                         <ToastProvider>
                             <Navbar />
                             <main style={{ padding: "2rem 0" }}>{children}</main>
-                            <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
-                                <AdBanner dataAdSlot="3325660893" />
-                            </div>
+                            {/* 
+                                AdSense disabled due to incompatibility with Next.js SSR
+                                See: https://github.com/vercel/next.js/discussions/38256
+                                Alternative: Use page-level ads or different ad network
+                            */}
                         </ToastProvider>
                     </UndoProvider>
                 </ThemeProvider>
