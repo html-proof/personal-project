@@ -24,11 +24,11 @@ export const metadata: Metadata = {
     },
 };
 
+import DisableDevTools from "@/components/common/DisableDevTools";
 import { UndoProvider } from "@/context/UndoContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ToastProvider } from "@/context/ToastContext";
 import InstallPrompt from "@/components/common/InstallPrompt";
-import Script from "next/script";
 
 export default function RootLayout({
     children,
