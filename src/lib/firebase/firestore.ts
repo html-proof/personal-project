@@ -14,6 +14,7 @@ import {
 
 // --- Collections ---
 const DEPARTMENTS = "departments";
+const BATCHES = "batches";
 const SEMESTERS = "semesters";
 const SUBJECTS = "subjects";
 const NOTES = "notes";
@@ -34,16 +35,31 @@ export const updateDepartment = (id: string, name: string) =>
 
 export const deleteDepartment = (id: string) => deleteDoc(doc(db, DEPARTMENTS, id));
 
+// --- Batches ---
+export const getBatches = async (departmentId: string) => {
+    const q = query(collection(db, BATCHES), where("departmentId", "==", departmentId), orderBy("name"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
+export const createBatch = (departmentId: string, name: string) =>
+    addDoc(collection(db, BATCHES), { departmentId, name, createdAt: serverTimestamp() });
+
+export const updateBatch = (id: string, name: string) =>
+    updateDoc(doc(db, BATCHES, id), { name });
+
+export const deleteBatch = (id: string) => deleteDoc(doc(db, BATCHES, id));
+
 // --- Semesters ---
-export const getSemesters = async (departmentId: string) => {
-    const q = query(collection(db, SEMESTERS), where("departmentId", "==", departmentId));
+export const getSemesters = async (batchId: string) => {
+    const q = query(collection(db, SEMESTERS), where("batchId", "==", batchId));
     const snapshot = await getDocs(q);
     // Sort manually or add composite index
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => a.name.localeCompare(b.name));
 };
 
-export const createSemester = (departmentId: string, name: string) =>
-    addDoc(collection(db, SEMESTERS), { departmentId, name, createdAt: serverTimestamp() });
+export const createSemester = (batchId: string, name: string) =>
+    addDoc(collection(db, SEMESTERS), { batchId, name, createdAt: serverTimestamp() });
 
 export const updateSemester = (id: string, name: string) =>
     updateDoc(doc(db, SEMESTERS, id), { name });
@@ -75,6 +91,12 @@ export const getFolders = async (subjectId: string) => {
 export const createFolder = (data: any) =>
     addDoc(collection(db, FOLDERS), { ...data, createdAt: serverTimestamp() });
 
+export const updateFolder = (id: string, name: string) =>
+    updateDoc(doc(db, FOLDERS, id), { name });
+
+export const moveFolder = (id: string, subjectId: string) =>
+    updateDoc(doc(db, FOLDERS, id), { subjectId });
+
 export const deleteFolder = (id: string) => deleteDoc(doc(db, FOLDERS, id));
 
 export const getUserFolders = async (userId: string) => {
@@ -95,6 +117,9 @@ export const getNotes = async (subjectId: string) => {
 export const createNote = (data: any) =>
     addDoc(collection(db, NOTES), { ...data, createdAt: serverTimestamp() });
 
+export const updateNote = (id: string, updates: any) =>
+    updateDoc(doc(db, NOTES, id), updates);
+
 export const deleteNote = (id: string) => deleteDoc(doc(db, NOTES, id));
 
 export const getFolderNotes = async (folderId: string) => {
@@ -105,6 +130,16 @@ export const getFolderNotes = async (folderId: string) => {
 
 export const moveNote = (id: string, folderId: string | null) =>
     updateDoc(doc(db, NOTES, id), { folderId });
+
+export const moveNotesBulk = async (ids: string[], folderId: string | null) => {
+    const promises = ids.map(id => updateDoc(doc(db, NOTES, id), { folderId }));
+    return Promise.all(promises);
+};
+
+export const deleteNotesBulk = async (ids: string[]) => {
+    const promises = ids.map(id => deleteDoc(doc(db, NOTES, id)));
+    return Promise.all(promises);
+};
 
 export const getUserNotes = async (userId: string) => {
     const q = query(collection(db, NOTES), where("uploadedBy", "==", userId), orderBy("createdAt", "desc"));

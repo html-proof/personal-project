@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getDepartments, getSemesters, getSubjects, getNotes, searchNotes } from "@/lib/firebase/firestore";
+import { getDepartments, getBatches, getSemesters, getSubjects, getNotes, searchNotes } from "@/lib/firebase/firestore";
 import { ChevronRight, File, Film, Image as ImageIcon, Download, Eye, Share2, Search, X } from "lucide-react";
 import styles from "./NotesBrowser.module.css";
 
@@ -9,6 +9,8 @@ export default function NotesBrowser() {
     // ... State ... (Same as before)
     const [departments, setDepartments] = useState<any[]>([]);
     const [selectedDept, setSelectedDept] = useState<any>(null);
+    const [batches, setBatches] = useState<any[]>([]);
+    const [selectedBatch, setSelectedBatch] = useState<any>(null);
     const [semesters, setSemesters] = useState<any[]>([]);
     const [selectedSem, setSelectedSem] = useState<any>(null);
     const [subjects, setSubjects] = useState<any[]>([]);
@@ -35,11 +37,23 @@ export default function NotesBrowser() {
         if (selectedDept?.id === dept.id && !isSearching) return;
 
         setSelectedDept(dept);
+        setSelectedBatch(null);
         setSelectedSem(null);
         setSelectedSub(null);
         setSearchQuery("");
         setIsSearching(false);
-        setSemesters(await getSemesters(dept.id));
+        setBatches(await getBatches(dept.id));
+    }
+
+    async function handleBatchClick(batch: any) {
+        if (selectedBatch?.id === batch.id) {
+            setSelectedBatch(null); setSelectedSem(null); setSelectedSub(null);
+            return;
+        }
+        setSelectedBatch(batch);
+        setSelectedSem(null);
+        setSelectedSub(null);
+        setSemesters(await getSemesters(batch.id));
     }
 
     async function handleSemClick(sem: any) {
@@ -227,10 +241,29 @@ export default function NotesBrowser() {
                         </div>
                     ) : (
                         <div className={styles.grid}>
-                            {/* Semesters */}
+                            {/* Batches */}
                             <div className={`card ${!selectedDept ? styles.disabled : ''}`}>
-                                <h3 className={styles.colTitle}>Semesters</h3>
+                                <h3 className={styles.colTitle}>Batches</h3>
                                 {selectedDept && (
+                                    <ul className={styles.list}>
+                                        {batches.length === 0 && <li className={styles.empty}>No batches found.</li>}
+                                        {batches.map(b => (
+                                            <li
+                                                key={b.id}
+                                                className={`${styles.item} ${selectedBatch?.id === b.id ? styles.active : ''}`}
+                                                onClick={() => handleBatchClick(b)}
+                                            >
+                                                {b.name} <ChevronRight size={16} />
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+
+                            {/* Semesters */}
+                            <div className={`card ${!selectedBatch ? styles.disabled : ''}`}>
+                                <h3 className={styles.colTitle}>Semesters</h3>
+                                {selectedBatch && (
                                     <ul className={styles.list}>
                                         {semesters.length === 0 && <li className={styles.empty}>No semesters found.</li>}
                                         {semesters.map(s => (
@@ -244,6 +277,7 @@ export default function NotesBrowser() {
                                         ))}
                                     </ul>
                                 )}
+                                {!selectedBatch && <p className={styles.hint}>Select a batch first.</p>}
                             </div>
 
                             {/* Subjects */}

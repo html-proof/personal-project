@@ -1,12 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUserNotes, deleteNote, getUserFolders } from "@/lib/firebase/firestore"; // Added deleteNote import if we want to add delete later, but sticking to request for now
+import {
+    getUserNotes,
+    deleteNote,
+    getUserFolders,
+    updateNote,
+    moveNotesBulk,
+    deleteNotesBulk,
+    updateFolder,
+    deleteFolder
+} from "@/lib/firebase/firestore";
 import { useAuth } from "@/lib/firebase/auth";
 import { useUndo } from "@/context/UndoContext";
-import { Eye, Download, Share2, FileText, Film, Image as ImageIcon, Trash2, Folder, ChevronRight, Home } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
+import {
+    Eye,
+    Download,
+    Share2,
+    FileText,
+    Film,
+    Image as ImageIcon,
+    Trash2,
+    Folder,
+    ChevronRight,
+    Home,
+    MoreVertical,
+    Pencil,
+    Check,
+    X,
+    Move
+} from "lucide-react";
 import styles from "./MyNotes.module.css";
 import FilePreviewModal from "@/components/common/FilePreviewModal";
+import MoveItemsModal from "./MoveItemsModal";
 
 export default function MyNotes() {
     const { user } = useAuth();
@@ -16,6 +43,19 @@ export default function MyNotes() {
     const [currentFolder, setCurrentFolder] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null);
+    const { addToast } = useToast();
+
+    // Selection & Bulk State
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+
+    // Editing State (Rename)
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editName, setEditName] = useState("");
+    const [isEditingFolder, setIsEditingFolder] = useState(false);
+
+    // UI state
+    const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
     useEffect(() => {
         if (!user) return;
@@ -42,10 +82,134 @@ export default function MyNotes() {
     const handleShare = async (url: string) => {
         try {
             await navigator.clipboard.writeText(url);
-            alert("Link copied to clipboard!");
+            addToast("Link copied to clipboard!", "success");
         } catch (err) {
             console.error("Failed to copy", err);
+            addToast("Failed to copy link", "error");
         }
+    };
+
+    const handleDownload = async (note: any) => {
+        try {
+            addToast("Downloading...", "success");
+            const response = await fetch(note.fileUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Determine extension
+            let extension = "";
+            // Try to extract from URL first (remove query params)
+            const urlPath = note.fileUrl.split('?')[0];
+            const dotIndex = urlPath.lastIndexOf('.');
+            if (dotIndex !== -1 && urlPath.length - dotIndex <= 5) { // Sanity check length
+                extension = urlPath.substring(dotIndex);
+            } else {
+                // Fallback mime types
+                const type = note.fileType || "";
+                if (type.includes("pdf")) extension = ".pdf";
+                else if (type.includes("image/png")) extension = ".png";
+                else if (type.includes("image/jpeg") || type.includes("image/jpg")) extension = ".jpg";
+                else if (type.includes("word") || type.includes("doc")) extension = ".docx";
+                else if (type.includes("sheet") || type.includes("excel")) extension = ".xlsx";
+                else if (type.includes("presentation") || type.includes("powerpoint")) extension = ".pptx";
+                else if (type.includes("text/plain")) extension = ".txt";
+            }
+
+            // If note.title already has extension, don't duplicate
+            let filename = note.title;
+            if (!filename.toLowerCase().endsWith(extension.toLowerCase())) {
+                filename += extension;
+            }
+
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Download failed", error);
+            addToast("Failed to download file", "error");
+        }
+    };
+
+    const handleRename = async (id: string, isFolder: boolean) => {
+        if (!editName.trim()) return;
+        try {
+            if (isFolder) {
+                await updateFolder(id, editName.trim());
+                setFolders(prev => prev.map(f => f.id === id ? { ...f, name: editName.trim() } : f));
+            } else {
+                await updateNote(id, { title: editName.trim() });
+                setNotes(prev => prev.map(n => n.id === id ? { ...n, title: editName.trim() } : n));
+            }
+            addToast("Renamed successfully", "success");
+        } catch (error) {
+            console.error("Failed to rename", error);
+            addToast("Failed to rename", "error");
+        } finally {
+            setEditingId(null);
+            setEditName("");
+        }
+    };
+
+    const handleBulkMove = async (targetFolderId: string | null) => {
+        if (selectedIds.length === 0) return;
+        try {
+            await moveNotesBulk(selectedIds, targetFolderId);
+            setNotes(prev => prev.map(n => selectedIds.includes(n.id) ? { ...n, folderId: targetFolderId } : n));
+            addToast(`Moved ${selectedIds.length} items successfully`, "success");
+            setSelectedIds([]);
+            setIsMoveModalOpen(false);
+        } catch (error) {
+            console.error("Failed to move items", error);
+            addToast("Failed to move items", "error");
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.length === 0) return;
+        if (!confirm(`Are you sure you want to delete ${selectedIds.length} items?`)) return;
+
+        try {
+            await deleteNotesBulk(selectedIds);
+            setNotes(prev => prev.filter(n => !selectedIds.includes(n.id)));
+            addToast(`Deleted ${selectedIds.length} items successfully`, "success");
+            setSelectedIds([]);
+        } catch (error) {
+            console.error("Failed to delete items", error);
+            addToast("Failed to delete items", "error");
+        }
+    };
+
+    const handleFolderDelete = async (folder: any) => {
+        const folderNotes = notes.filter(n => n.folderId === folder.id);
+        if (folderNotes.length > 0) {
+            const mode = confirm(`This folder contains ${folderNotes.length} items. \n\nClick OK to DELETE ALL items or Cancel to MOVE them to home first.`);
+            if (mode) {
+                // Delete all
+                const ids = folderNotes.map(n => n.id);
+                await deleteNotesBulk(ids);
+                await deleteFolder(folder.id);
+                setNotes(prev => prev.filter(n => !ids.includes(n.id)));
+            } else {
+                // Move to root
+                const ids = folderNotes.map(n => n.id);
+                await moveNotesBulk(ids, null);
+                await deleteFolder(folder.id);
+                setNotes(prev => prev.map(n => ids.includes(n.id) ? { ...n, folderId: null } : n));
+            }
+        } else {
+            if (!confirm(`Are you sure you want to delete folder '${folder.name}'?`)) return;
+            await deleteFolder(folder.id);
+        }
+        setFolders(prev => prev.filter(f => f.id !== folder.id));
+        addToast("Folder deleted successfully", "success");
+    };
+
+    const toggleSelection = (id: string) => {
+        setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
     };
 
     const handleDelete = async (id: string) => {
@@ -128,32 +292,115 @@ export default function MyNotes() {
                 {visibleFolders.map(folder => (
                     <div
                         key={folder.id}
-                        className={styles.card}
-                        onClick={() => setCurrentFolder(folder)}
-                        style={{ cursor: "pointer", borderColor: "#3b82f6" }}
+                        className={`${styles.card} ${editingId === folder.id ? styles.cardEditing : ''}`}
+                        onClick={() => editingId !== folder.id && setCurrentFolder(folder)}
+                        style={{ cursor: "pointer" }}
                     >
                         <div className={styles.preview} style={{ background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
                             <Folder size={64} color="#3b82f6" fill="#bfdbfe" />
+                            <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === folder.id ? null : folder.id); }}
+                                    className={styles.menuBtn}
+                                >
+                                    <MoreVertical size={18} />
+                                </button>
+                                {activeMenu === folder.id && (
+                                    <div className={styles.moreMenu} onClick={e => e.stopPropagation()}>
+                                        <button className={styles.menuItem} onClick={() => { setEditingId(folder.id); setEditName(folder.name); setIsEditingFolder(true); setActiveMenu(null); }}>
+                                            <Pencil size={14} /> Rename
+                                        </button>
+                                        <button className={`${styles.menuItem} ${styles.menuItemDanger}`} onClick={() => { handleFolderDelete(folder); setActiveMenu(null); }}>
+                                            <Trash2 size={14} /> Delete
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         <div className={styles.content}>
-                            <h3 className={styles.fileName}>{folder.name}</h3>
-                            <p className={styles.fileMeta}>Folder • {notes.filter(n => n.folderId === folder.id).length} items</p>
+                            {editingId === folder.id && isEditingFolder ? (
+                                <div style={{ display: "flex", gap: "0.25rem" }} onClick={e => e.stopPropagation()}>
+                                    <input
+                                        className={styles.editInput}
+                                        value={editName}
+                                        onChange={e => setEditName(e.target.value)}
+                                        autoFocus
+                                        onKeyDown={e => e.key === 'Enter' && handleRename(folder.id, true)}
+                                    />
+                                    <button onClick={() => handleRename(folder.id, true)} className={styles.actionBtn}><Check size={14} /></button>
+                                    <button onClick={() => setEditingId(null)} className={styles.actionBtn}><X size={14} /></button>
+                                </div>
+                            ) : (
+                                <>
+                                    <h3 className={styles.fileName}>{folder.name}</h3>
+                                    <p className={styles.fileMeta}>Folder • {notes.filter(n => n.folderId === folder.id).length} items</p>
+                                </>
+                            )}
                         </div>
                     </div>
                 ))}
 
                 {/* Render Files */}
                 {visibleNotes.map(note => (
-                    <div key={note.id} className={styles.card}>
+                    <div
+                        key={note.id}
+                        className={`${styles.card} ${selectedIds.includes(note.id) ? styles.cardSelected : ''}`}
+                        onClick={() => {
+                            if (editingId === note.id) return;
+                            toggleSelection(note.id);
+                        }}
+                    >
+                        <input
+                            type="checkbox"
+                            className={styles.checkbox}
+                            checked={selectedIds.includes(note.id)}
+                            onChange={() => toggleSelection(note.id)}
+                            onClick={e => e.stopPropagation()}
+                        />
+
                         <div className={styles.preview}>
                             {getPreview(note)}
                             <div style={{ position: 'absolute', top: 8, right: 8 }}>
-                                {/* Optional: Badge or Type indicator */}
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === note.id ? null : note.id); }}
+                                    className={styles.menuBtn}
+                                >
+                                    <MoreVertical size={18} />
+                                </button>
+                                {activeMenu === note.id && (
+                                    <div className={styles.moreMenu} onClick={e => e.stopPropagation()}>
+                                        <button className={styles.menuItem} onClick={() => { setEditingId(note.id); setEditName(note.title); setIsEditingFolder(false); setActiveMenu(null); }}>
+                                            <Pencil size={14} /> Rename
+                                        </button>
+                                        <button className={styles.menuItem} onClick={() => { setSelectedIds([note.id]); setIsMoveModalOpen(true); setActiveMenu(null); }}>
+                                            <Move size={14} /> Move
+                                        </button>
+                                        <button className={`${styles.menuItem} ${styles.menuItemDanger}`} onClick={() => { handleDelete(note.id); setActiveMenu(null); }}>
+                                            <Trash2 size={14} /> Delete
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className={styles.content}>
-                            <h3 className={styles.fileName} title={note.title}>{note.title}</h3>
-                            <p className={styles.fileMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
+                            {editingId === note.id && !isEditingFolder ? (
+                                <div style={{ display: "flex", gap: "0.25rem" }} onClick={e => e.stopPropagation()}>
+                                    <input
+                                        className={styles.editInput}
+                                        value={editName}
+                                        onChange={e => setEditName(e.target.value)}
+                                        autoFocus
+                                        onKeyDown={e => e.key === 'Enter' && handleRename(note.id, false)}
+                                    />
+                                    <button onClick={() => handleRename(note.id, false)} className={styles.actionBtn}><Check size={14} /></button>
+                                    <button onClick={() => setEditingId(null)} className={styles.actionBtn}><X size={14} /></button>
+                                </div>
+                            ) : (
+                                <>
+                                    <h3 className={styles.fileName} title={note.title}>{note.title}</h3>
+                                    <p className={styles.fileMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
+                                </>
+                            )}
 
                             <div className={styles.actions}>
                                 <button
@@ -161,41 +408,62 @@ export default function MyNotes() {
                                     title="View"
                                     onClick={(e) => {
                                         e.preventDefault();
+                                        e.stopPropagation();
                                         setPreviewFile({ url: note.fileUrl, name: note.title, type: note.fileType });
                                     }}
                                 >
                                     <Eye size={18} />
                                 </button>
-                                <a
-                                    href={note.fileUrl}
-                                    download // Note: This might not work for cross-origin without config
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <button
                                     className={styles.btn}
                                     title="Download"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDownload(note);
+                                    }}
                                 >
                                     <Download size={18} />
-                                </a>
+                                </button>
                                 <button
-                                    onClick={() => handleShare(note.fileUrl)}
+                                    onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl); }}
                                     className={styles.btn}
                                     title="Share Link"
                                 >
                                     <Share2 size={18} />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(note.id)}
-                                    className={`${styles.btn}`}
-                                    style={{ color: '#ef4444', borderColor: '#ef4444' }}
-                                    title="Delete"
-                                >
-                                    <Trash2 size={18} />
                                 </button>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
+
+            {
+                selectedIds.length > 0 && (
+                    <div className={styles.bulkBar}>
+                        <div className={styles.bulkInfo}>
+                            {selectedIds.length} item{selectedIds.length !== 1 ? 's' : ''} selected
+                        </div>
+                        <div className={styles.bulkActions}>
+                            <button className={styles.bulkBtn} onClick={() => setIsMoveModalOpen(true)}>
+                                <Move size={18} /> Move
+                            </button>
+                            <button className={styles.bulkBtn} style={{ color: '#ef4444' }} onClick={handleBulkDelete}>
+                                <Trash2 size={18} /> Delete
+                            </button>
+                            <button className={styles.bulkBtn} onClick={() => setSelectedIds([])}>
+                                <X size={18} /> Cancel
+                            </button>
+                        </div>
+                    </div>
+                )
+            }
+
+            <MoveItemsModal
+                isOpen={isMoveModalOpen}
+                onClose={() => setIsMoveModalOpen(false)}
+                onMove={handleBulkMove}
+                itemCount={selectedIds.length}
+            />
 
             <FilePreviewModal
                 isOpen={!!previewFile}
@@ -204,6 +472,6 @@ export default function MyNotes() {
                 fileName={previewFile?.name || ""}
                 fileType={previewFile?.type || ""}
             />
-        </section>
+        </section >
     );
 }

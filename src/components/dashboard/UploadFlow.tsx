@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { UploadCloud, File, Film, Image as ImageIcon, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import {
     getDepartments,
+    getBatches,
     getSemesters,
     getSubjects,
     getFolders,
@@ -26,6 +27,8 @@ export default function UploadFlow() {
     const [subjects, setSubjects] = useState<any[]>([]);
 
     const [selectedDept, setSelectedDept] = useState("");
+    const [batches, setBatches] = useState<any[]>([]);
+    const [selectedBatch, setSelectedBatch] = useState("");
     const [selectedSem, setSelectedSem] = useState("");
     const [selectedSub, setSelectedSub] = useState("");
     const [selectedFolder, setSelectedFolder] = useState("");
@@ -52,18 +55,31 @@ export default function UploadFlow() {
         loadDepts();
     }, []);
 
-    // Load Semesters when Dept changes
+    // Load Batches when Dept changes
     useEffect(() => {
         if (!selectedDept) {
+            setBatches([]);
+            return;
+        }
+        async function loadBatches() {
+            const b = await getBatches(selectedDept);
+            setBatches(b);
+        }
+        loadBatches();
+    }, [selectedDept]);
+
+    // Load Semesters when Batch changes
+    useEffect(() => {
+        if (!selectedBatch) {
             setSemesters([]);
             return;
         }
         async function loadSems() {
-            const sems = await getSemesters(selectedDept);
+            const sems = await getSemesters(selectedBatch);
             setSemesters(sems);
         }
         loadSems();
-    }, [selectedDept]);
+    }, [selectedBatch]);
 
     // Load Subjects when Sem changes
     useEffect(() => {
@@ -168,7 +184,7 @@ export default function UploadFlow() {
     };
 
     const handleSubmit = async () => {
-        if (!selectedDept || !selectedSem || !selectedSub || files.length === 0 || !user) return;
+        if (!selectedDept || !selectedBatch || !selectedSem || !selectedSub || files.length === 0 || !user) return;
 
         setUploading(true);
         const newProgress: any = {};
@@ -239,6 +255,7 @@ export default function UploadFlow() {
                     // 2. Create Note Record
                     await createNote({
                         departmentId: selectedDept,
+                        batchId: selectedBatch,
                         semesterId: selectedSem,
                         subjectId: selectedSub,
                         // Use webkitRelativePath for folder structure if available
@@ -288,7 +305,7 @@ export default function UploadFlow() {
                 <div className={styles.grid}>
                     <select
                         value={selectedDept}
-                        onChange={(e) => { setSelectedDept(e.target.value); setSelectedSem(""); setSelectedSub(""); }}
+                        onChange={(e) => { setSelectedDept(e.target.value); setSelectedBatch(""); setSelectedSem(""); setSelectedSub(""); }}
                         className={styles.select}
                     >
                         <option value="">Select Department</option>
@@ -296,10 +313,20 @@ export default function UploadFlow() {
                     </select>
 
                     <select
+                        value={selectedBatch}
+                        onChange={(e) => { setSelectedBatch(e.target.value); setSelectedSem(""); setSelectedSub(""); }}
+                        className={styles.select}
+                        disabled={!selectedDept}
+                    >
+                        <option value="">Select Batch</option>
+                        {batches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                    </select>
+
+                    <select
                         value={selectedSem}
                         onChange={(e) => { setSelectedSem(e.target.value); setSelectedSub(""); }}
                         className={styles.select}
-                        disabled={!selectedDept}
+                        disabled={!selectedBatch}
                     >
                         <option value="">Select Semester</option>
                         {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
