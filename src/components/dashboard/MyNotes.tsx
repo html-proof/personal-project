@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/firebase/auth";
 import { useUndo } from "@/context/UndoContext";
 import { Eye, Download, Share2, FileText, Film, Image as ImageIcon, Trash2, Folder, ChevronRight, Home } from "lucide-react";
 import styles from "./MyNotes.module.css";
+import FilePreviewModal from "@/components/common/FilePreviewModal";
 
 export default function MyNotes() {
     const { user } = useAuth();
@@ -14,6 +15,7 @@ export default function MyNotes() {
     const [folders, setFolders] = useState<any[]>([]);
     const [currentFolder, setCurrentFolder] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
+    const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null);
 
     useEffect(() => {
         if (!user) return;
@@ -154,15 +156,16 @@ export default function MyNotes() {
                             <p className={styles.fileMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
 
                             <div className={styles.actions}>
-                                <a
-                                    href={note.fileUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <button
                                     className={styles.btn}
                                     title="View"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setPreviewFile({ url: note.fileUrl, name: note.title, type: note.fileType });
+                                    }}
                                 >
                                     <Eye size={18} />
-                                </a>
+                                </button>
                                 <a
                                     href={note.fileUrl}
                                     download // Note: This might not work for cross-origin without config
@@ -193,6 +196,14 @@ export default function MyNotes() {
                     </div>
                 ))}
             </div>
+
+            <FilePreviewModal
+                isOpen={!!previewFile}
+                onClose={() => setPreviewFile(null)}
+                fileUrl={previewFile?.url || ""}
+                fileName={previewFile?.name || ""}
+                fileType={previewFile?.type || ""}
+            />
         </section>
     );
 }
