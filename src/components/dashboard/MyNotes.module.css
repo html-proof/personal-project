@@ -2,14 +2,46 @@
     margin-top: 3rem;
 }
 
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.headerActions {
+    display: flex;
+    gap: 1rem;
+}
+
 .title {
     font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    color: var(--text-main);
+    font-weight: 700;
+    color: #111827;
+}
+
+.createBtn {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.createBtn:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.hiddenInput {
+    display: none;
 }
 
 .grid {

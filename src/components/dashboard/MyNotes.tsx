@@ -34,6 +34,10 @@ import {
 import styles from "./MyNotes.module.css";
 import FilePreviewModal from "@/components/common/FilePreviewModal";
 import MoveItemsModal from "./MoveItemsModal";
+import ConfirmationModal from "@/components/common/ConfirmationModal";
+import { createFolder } from "@/lib/firebase/firestore";
+import { uploadFile } from "@/lib/supabase/storage";
+import { FolderPlus, RefreshCw, Upload } from "lucide-react";
 
 export default function MyNotes() {
     const { user } = useAuth();
@@ -44,6 +48,30 @@ export default function MyNotes() {
     const [loading, setLoading] = useState(true);
     const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null);
     const { addToast } = useToast();
+
+    // Confirmation Modal State
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        isDanger?: boolean;
+        confirmText?: string;
+        cancelText?: string;
+    }>({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => { },
+        isDanger: false
+    });
+
+    // Create Folder State
+    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+    const [newFolderName, setNewFolderName] = useState("");
+
+    // Replace File State
+    const [replacingNoteId, setReplacingNoteId] = useState<string | null>(null);
 
     // Selection & Bulk State
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -134,6 +162,68 @@ export default function MyNotes() {
         }
     };
 
+    const handleReplaceFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0 || !replacingNoteId) return;
+        const file = e.target.files[0];
+
+        // Optimistic update
+        addToast("Replacing file...", "info");
+
+        try {
+            // 1. Upload new file (same path structure or new unique path)
+            const uniqueId = Math.random().toString(36).substring(2, 10);
+            const path = `uploads/${user?.uid}/${Date.now()}_${uniqueId}_${file.name}`;
+            const url = await uploadFile(file, path);
+
+            // 2. Update Note Record
+            await updateNote(replacingNoteId, {
+                fileUrl: url,
+                fileType: file.type,
+                // optionally update title: title: file.name
+            });
+
+            // 3. Update UI
+            setNotes(prev => prev.map(n => n.id === replacingNoteId ? { ...n, fileUrl: url, fileType: file.type } : n));
+            addToast("File replaced successfully", "success");
+        } catch (error) {
+            console.error("Failed to replace file", error);
+            addToast("Failed to replace file", "error");
+        } finally {
+            setReplacingNoteId(null);
+            // Reset input
+            e.target.value = "";
+        }
+    };
+
+    const handleCreateFolder = async () => {
+        if (!newFolderName.trim() || !user) return;
+        try {
+            // If in a subfolder (not supported deeply yet, but prepared)
+            // For now create at root or current level if supported
+            const ref = await createFolder({
+                name: newFolderName.trim(),
+                createdBy: user.uid,
+                // If we are in a folder, this would be a subfolder, depending on schema support for parentId
+                // For now, folders are flat in this view unless we link them. 
+                // Assuming simple flat folders for now as per schema.
+            });
+
+            const newFolder = {
+                id: ref.id,
+                name: newFolderName.trim(),
+                createdBy: user.uid
+            };
+
+            setFolders(prev => [...prev, newFolder]);
+            setNewFolderName("");
+            setIsCreatingFolder(false);
+            addToast("Folder created successfully", "success");
+        } catch (error) {
+            console.error("Failed to create folder", error);
+            addToast("Failed to create folder", "error");
+        }
+    };
+
     const handleRename = async (id: string, isFolder: boolean) => {
         if (!editName.trim()) return;
         try {
@@ -170,42 +260,63 @@ export default function MyNotes() {
 
     const handleBulkDelete = async () => {
         if (selectedIds.length === 0) return;
-        if (!confirm(`Are you sure you want to delete ${selectedIds.length} items?`)) return;
 
-        try {
-            await deleteNotesBulk(selectedIds);
-            setNotes(prev => prev.filter(n => !selectedIds.includes(n.id)));
-            addToast(`Deleted ${selectedIds.length} items successfully`, "success");
-            setSelectedIds([]);
-        } catch (error) {
-            console.error("Failed to delete items", error);
-            addToast("Failed to delete items", "error");
-        }
+        setConfirmModal({
+            isOpen: true,
+            title: "Delete Items",
+            message: `Are you sure you want to delete ${selectedIds.length} items?`,
+            isDanger: true,
+            onConfirm: async () => {
+                try {
+                    await deleteNotesBulk(selectedIds);
+                    setNotes(prev => prev.filter(n => !selectedIds.includes(n.id)));
+                    addToast(`Deleted ${selectedIds.length} items successfully`, "success");
+                    setSelectedIds([]);
+                } catch (error) {
+                    console.error("Failed to delete items", error);
+                    addToast("Failed to delete items", "error");
+                }
+            }
+        });
     };
 
     const handleFolderDelete = async (folder: any) => {
         const folderNotes = notes.filter(n => n.folderId === folder.id);
         if (folderNotes.length > 0) {
-            const mode = confirm(`This folder contains ${folderNotes.length} items. \n\nClick OK to DELETE ALL items or Cancel to MOVE them to home first.`);
-            if (mode) {
-                // Delete all
-                const ids = folderNotes.map(n => n.id);
-                await deleteNotesBulk(ids);
-                await deleteFolder(folder.id);
-                setNotes(prev => prev.filter(n => !ids.includes(n.id)));
-            } else {
-                // Move to root
-                const ids = folderNotes.map(n => n.id);
-                await moveNotesBulk(ids, null);
-                await deleteFolder(folder.id);
-                setNotes(prev => prev.map(n => ids.includes(n.id) ? { ...n, folderId: null } : n));
-            }
+            setConfirmModal({
+                isOpen: true,
+                title: "Delete Folder with Content",
+                message: `This folder contains ${folderNotes.length} items. \n\nDo you want to DELETE ALL items or MOVE them to home first?`,
+                confirmText: "Delete All & Folder",
+                cancelText: "Cancel",
+                isDanger: true,
+                onConfirm: async () => {
+                    // This logic currently only supports "Delete All" for simplicity in modal
+                    // To support "Move then Delete", we'd need a multi-choice modal or separate interactions
+                    // Customizing behavior: Delete All
+                    const ids = folderNotes.map(n => n.id);
+                    await deleteNotesBulk(ids);
+                    await deleteFolder(folder.id);
+                    setNotes(prev => prev.filter(n => !ids.includes(n.id)));
+                    setFolders(prev => prev.filter(f => f.id !== folder.id));
+                    addToast("Folder and contents deleted", "success");
+                }
+            });
+            // Note: Ideally we'd offer a "Move to Home" option button in the modal. 
+            // For now, user can manually move items out if they want to save them.
         } else {
-            if (!confirm(`Are you sure you want to delete folder '${folder.name}'?`)) return;
-            await deleteFolder(folder.id);
+            setConfirmModal({
+                isOpen: true,
+                title: "Delete Folder",
+                message: `Are you sure you want to delete folder '${folder.name}'?`,
+                isDanger: true,
+                onConfirm: async () => {
+                    await deleteFolder(folder.id);
+                    setFolders(prev => prev.filter(f => f.id !== folder.id));
+                    addToast("Folder deleted successfully", "success");
+                }
+            });
         }
-        setFolders(prev => prev.filter(f => f.id !== folder.id));
-        addToast("Folder deleted successfully", "success");
     };
 
     const toggleSelection = (id: string) => {
@@ -270,8 +381,40 @@ export default function MyNotes() {
     return (
 
         <section className={styles.section}>
+            {/* Hidden Input for File Replacement */}
+            <input
+                type="file"
+                id="replace-file-input"
+                className={styles.hiddenInput}
+                onChange={handleReplaceFile}
+            />
+
             <div className={styles.header}>
                 <h2 className={styles.title}>My Uploads</h2>
+
+                <div className={styles.headerActions}>
+                    {!currentFolder && (
+                        !isCreatingFolder ? (
+                            <button onClick={() => setIsCreatingFolder(true)} className={styles.createBtn}>
+                                <FolderPlus size={18} /> New Folder
+                            </button>
+                        ) : (
+                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                                <input
+                                    className={styles.editInput}
+                                    placeholder="Folder Name"
+                                    value={newFolderName}
+                                    onChange={e => setNewFolderName(e.target.value)}
+                                    autoFocus
+                                    onKeyDown={e => e.key === 'Enter' && handleCreateFolder()}
+                                />
+                                <button onClick={handleCreateFolder} className={styles.actionBtn}><Check size={14} /></button>
+                                <button onClick={() => setIsCreatingFolder(false)} className={styles.actionBtn}><X size={14} /></button>
+                            </div>
+                        )
+                    )}
+                </div>
+
                 {currentFolder && (
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem", color: "#6b7280", marginTop: "0.5rem" }}>
                         <button
@@ -372,6 +515,13 @@ export default function MyNotes() {
                                         <button className={styles.menuItem} onClick={() => { setEditingId(note.id); setEditName(note.title); setIsEditingFolder(false); setActiveMenu(null); }}>
                                             <Pencil size={14} /> Rename
                                         </button>
+                                        <button className={styles.menuItem} onClick={() => {
+                                            setReplacingNoteId(note.id);
+                                            document.getElementById('replace-file-input')?.click();
+                                            setActiveMenu(null);
+                                        }}>
+                                            <RefreshCw size={14} /> Replace File
+                                        </button>
                                         <button className={styles.menuItem} onClick={() => { setSelectedIds([note.id]); setIsMoveModalOpen(true); setActiveMenu(null); }}>
                                             <Move size={14} /> Move
                                         </button>
@@ -471,6 +621,15 @@ export default function MyNotes() {
                 fileUrl={previewFile?.url || ""}
                 fileName={previewFile?.name || ""}
                 fileType={previewFile?.type || ""}
+            />
+
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                isDanger={confirmModal.isDanger}
             />
         </section >
     );
