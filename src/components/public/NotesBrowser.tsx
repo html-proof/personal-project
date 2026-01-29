@@ -26,23 +26,32 @@ export default function NotesBrowser() {
     }, []);
 
     async function loadDepartments() {
+        console.log('🔍 Loading departments...');
         const data = await getDepartments();
+        console.log('📊 Departments loaded:', data);
         setDepartments(data);
         if (data.length > 0) {
+            console.log('✅ Auto-selecting first department:', data[0]);
             handleDeptClick(data[0]);
+        } else {
+            console.warn('⚠️ No departments found in database');
         }
     }
 
     async function handleDeptClick(dept: any) {
         if (selectedDept?.id === dept.id && !isSearching) return;
 
+        console.log('🏢 Department selected:', dept);
         setSelectedDept(dept);
         setSelectedBatch(null);
         setSelectedSem(null);
         setSelectedSub(null);
         setSearchQuery("");
         setIsSearching(false);
-        setBatches(await getBatches(dept.id));
+        console.log('🔍 Loading batches for department:', dept.id);
+        const batchData = await getBatches(dept.id);
+        console.log('📊 Batches loaded:', batchData);
+        setBatches(batchData);
     }
 
     async function handleBatchClick(batch: any) {
