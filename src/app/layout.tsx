@@ -60,10 +60,10 @@ export default function RootLayout({
                         <ToastProvider>
                             <Navbar />
                             <main style={{ padding: "2rem 0" }}>{children}</main>
-                            {/* Placeholder Ad Slot - Replace '1234567890' with actual Ad Unit ID */}
-                            <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
+                            {/* AdBanner temporarily disabled due to width calculation issues */}
+                            {/* <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
                                 <AdBanner dataAdSlot="3325660893" />
-                            </div>
+                            </div> */}
                         </ToastProvider>
                     </UndoProvider>
                 </ThemeProvider>
