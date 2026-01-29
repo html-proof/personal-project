@@ -5,6 +5,7 @@ import { signUp } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail, UserPlus, User, Eye, EyeOff } from "lucide-react";
+import { CONFIG, validatePassword } from "@/lib/config";
 
 export default function SignupPage() {
     const [name, setName] = useState("");
@@ -21,28 +22,26 @@ export default function SignupPage() {
         setLoading(true);
         setError("");
 
-
-
-
-
-        // Secure Domain Validation
-        if (!email.endsWith("@cep.ac.in")) {
-            setError("Access Denied. You are not authorized to access this application.");
+        // Validate password strength
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+            setError(passwordValidation.message || "Invalid password");
             setLoading(false);
             return;
         }
 
         try {
             await signUp(name, email, password);
-            router.push("/auth/verify-email");
+            setSuccess(true);
         } catch (err: any) {
-            if (err.code === 'auth/email-already-in-use') {
+            if (err.message === "ACCESS_DENIED") {
+                setError("Access Denied. You are not authorized to access this application.");
+            } else if (err.code === 'auth/email-already-in-use') {
                 setError("Email already in use.");
             } else if (err.code === 'auth/weak-password') {
                 setError("Password should be at least 6 characters.");
             } else {
                 setError("Failed to create account. Try again.");
-                console.error(err);
             }
         } finally {
             setLoading(false);
@@ -134,7 +133,7 @@ export default function SignupPage() {
                                     color: "var(--text-main)",
                                     fontFamily: "inherit"
                                 }}
-                                placeholder="teacher@university.edu"
+                                placeholder={`teacher${CONFIG.ALLOWED_EMAIL_DOMAIN}`}
                             />
                         </div>
                     </div>
@@ -148,7 +147,7 @@ export default function SignupPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                minLength={6}
+                                minLength={CONFIG.PASSWORD_MIN_LENGTH}
                                 style={{
                                     width: "100%",
                                     padding: "0.75rem 2.5rem 0.75rem 2.5rem",

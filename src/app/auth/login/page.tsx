@@ -5,6 +5,7 @@ import { signIn } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail, Eye, EyeOff } from "lucide-react";
+import { CONFIG } from "@/lib/config";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -19,23 +20,15 @@ export default function LoginPage() {
         setLoading(true);
         setError("");
 
-
-
-
-
-        // Secure Domain Validation
-        if (!email.endsWith("@cep.ac.in")) {
-            setError("Access Denied. You are not authorized to access this application.");
-            setLoading(false);
-            return;
-        }
-
         try {
             await signIn(email, password);
             router.push("/dashboard");
         } catch (err: any) {
-            setError("Invalid email or password.");
-            console.error(err);
+            if (err.message === "ACCESS_DENIED") {
+                setError("Access Denied. You are not authorized to access this application.");
+            } else {
+                setError("Invalid email or password.");
+            }
         } finally {
             setLoading(false);
         }
@@ -81,7 +74,7 @@ export default function LoginPage() {
                                     color: "var(--text-main)",
                                     fontFamily: "inherit"
                                 }}
-                                placeholder="teacher@university.edu"
+                                placeholder={`teacher${CONFIG.ALLOWED_EMAIL_DOMAIN}`}
                             />
                         </div>
                     </div>

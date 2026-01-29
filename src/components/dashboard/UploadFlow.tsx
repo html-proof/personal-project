@@ -15,6 +15,7 @@ import { FolderPlus, Folder } from "lucide-react";
 import { uploadFile } from "@/lib/supabase/storage";
 import { useAuth } from "@/lib/firebase/auth";
 import { useToast } from "@/context/ToastContext";
+import { CONFIG, isAllowedFileType, sanitizeInput } from "@/lib/config";
 import styles from "./UploadFlow.module.css";
 
 export default function UploadFlow() {
@@ -112,8 +113,10 @@ export default function UploadFlow() {
         try {
             await createFolder({
                 subjectId: selectedSub,
-                departmentId: selectedDept, // Denormalize for easier querying if needed
-                name: newFolderName.trim(),
+                semesterId: selectedSem,
+                batchId: selectedBatch,
+                departmentId: selectedDept,
+                name: sanitizeInput(newFolderName.trim()),
                 createdBy: user?.uid
             });
             setNewFolderName("");
@@ -141,20 +144,26 @@ export default function UploadFlow() {
     };
 
     const addFiles = (newFiles: File[]) => {
-        const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
         const validFiles: File[] = [];
         const invalidFiles: string[] = [];
+        const unsupportedFiles: string[] = [];
 
         newFiles.forEach(file => {
-            if (file.size <= MAX_SIZE) {
-                validFiles.push(file);
-            } else {
+            if (file.size > CONFIG.MAX_FILE_SIZE) {
                 invalidFiles.push(file.name);
+            } else if (!isAllowedFileType(file.type)) {
+                unsupportedFiles.push(file.name);
+            } else {
+                validFiles.push(file);
             }
         });
 
         if (invalidFiles.length > 0) {
-            addToast(`Skipped files larger than 50MB: ${invalidFiles.join(", ")}`, "warning");
+            addToast(`Files larger than 50MB were skipped: ${invalidFiles.join(", ")}`, "warning");
+        }
+
+        if (unsupportedFiles.length > 0) {
+            addToast(`Unsupported file types were skipped: ${unsupportedFiles.join(", ")}`, "warning");
         }
 
         setFiles(prev => [...prev, ...validFiles]);
@@ -217,6 +226,8 @@ export default function UploadFlow() {
                     // Create it
                     const ref = await createFolder({
                         subjectId: selectedSub,
+                        semesterId: selectedSem,
+                        batchId: selectedBatch,
                         departmentId: selectedDept,
                         name: folderName,
                         createdBy: user.uid

@@ -23,22 +23,23 @@ export function UndoProvider({ children }: { children: React.ReactNode }) {
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Force execute if pending item exists on unmount/reload
+    // Cleanup timers on unmount
     useEffect(() => {
-        const handleUnload = () => {
-            if (pendingItem) {
-                pendingItem.action(); // Try to fire before close (unreliable but best effort)
-            }
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            if (intervalRef.current) clearInterval(intervalRef.current);
         };
-        window.addEventListener("beforeunload", handleUnload);
-        return () => window.removeEventListener("beforeunload", handleUnload);
-    }, [pendingItem]);
+    }, []);
 
     const scheduleDelete = (id: string, action: DeleteAction, description: string, onUndo?: () => void) => {
         // If there's already a pending item, force execute it immediately to clear queue
         if (pendingItem) {
             executeNow();
         }
+
+        // Clear any existing timers before setting new ones
+        if (timerRef.current) clearTimeout(timerRef.current);
+        if (intervalRef.current) clearInterval(intervalRef.current);
 
         const DURATION = 30000; // 30 seconds
         const expiry = Date.now() + DURATION;

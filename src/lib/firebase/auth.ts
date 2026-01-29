@@ -10,6 +10,7 @@ import {
     sendEmailVerification
 } from "firebase/auth";
 import { useEffect, useState } from "react";
+import { isAllowedEmail } from "../config";
 
 // Auth Hook
 export function useAuth() {
@@ -29,7 +30,7 @@ export function useAuth() {
 
 // Sign In
 export const signIn = (email: string, pass: string) => {
-    if (!email.endsWith("@cep.ac.in")) {
+    if (!isAllowedEmail(email)) {
         throw new Error("ACCESS_DENIED");
     }
     return signInWithEmailAndPassword(auth, email, pass);
@@ -38,7 +39,7 @@ export const signIn = (email: string, pass: string) => {
 // Sign Up (for initial seeding or admin use)
 export const signUp = async (name: string, email: string, pass: string) => {
 
-    if (!email.endsWith("@cep.ac.in")) {
+    if (!isAllowedEmail(email)) {
         throw new Error("ACCESS_DENIED");
     }
 
