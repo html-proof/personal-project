@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 interface AdBannerProps {
     dataAdSlot: string;
@@ -13,51 +13,59 @@ const AdBanner: React.FC<AdBannerProps> = ({
     dataAdFormat = "auto",
     dataFullWidthResponsive = true,
 }) => {
-    const [adLoaded, setAdLoaded] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const adInitialized = useRef(false); // Keep adInitialized to prevent multiple pushes
+    const [isMounted, setIsMounted] = useState(false);
+    const [adPushed, setAdPushed] = useState(false);
 
+    // Step 1: Set mounted state (client-side only)
     useEffect(() => {
-        if (adInitialized.current) return;
-
-        // Check for available width before pushing
-        if (!containerRef.current || containerRef.current.offsetWidth === 0) {
-            // Retry logic could be improved with ResizeObserver but simple timeout for now
-            const timer = setTimeout(() => {
-                if (adInitialized.current) return;
-                try {
-                    if (containerRef.current && containerRef.current.offsetWidth > 0) {
-                        (window as any).adsbygoogle = (window as any).adsbygoogle || [];
-                        (window as any).adsbygoogle.push({});
-                        setAdLoaded(true);
-                        adInitialized.current = true;
-                    }
-                } catch (e) {
-                    console.error("AdSense retry error:", e);
-                }
-            }, 1000); // 1s delay
-            return () => clearTimeout(timer);
-        }
-
-        try {
-            (window as any).adsbygoogle = (window as any).adsbygoogle || [];
-            (window as any).adsbygoogle.push({});
-            setAdLoaded(true);
-            adInitialized.current = true;
-        } catch (err) {
-            console.error("AdSense error:", err);
-        }
+        setIsMounted(true);
     }, []);
+
+    // Step 2: Initialize ad after mount with delay
+    useEffect(() => {
+        if (!isMounted || adPushed) return;
+
+        const timer = setTimeout(() => {
+            try {
+                if (typeof window !== 'undefined') {
+                    (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+                    (window as any).adsbygoogle.push({});
+                    setAdPushed(true);
+                }
+            } catch (err) {
+                console.error("AdSense initialization error:", err);
+            }
+        }, 2000); // 2 second delay to ensure layout is stable
+
+        return () => clearTimeout(timer);
+    }, [isMounted, adPushed]);
+
+    // Don't render on server side
+    if (!isMounted) {
+        return (
+            <div style={{
+                minHeight: "100px",
+                width: "100%",
+                margin: "20px 0",
+                background: "#f3f4f6"
+            }} />
+        );
+    }
 
     return (
         <div
-            ref={containerRef}
-            className="ad-container"
-            style={{ overflow: "hidden", minHeight: "100px", width: "100%", textAlign: "center", margin: "20px 0" }}
+            style={{
+                overflow: "hidden",
+                minHeight: "100px",
+                width: "100%",
+                textAlign: "center",
+                margin: "20px 0",
+                padding: "10px"
+            }}
         >
             <ins
                 className="adsbygoogle"
-                style={{ display: "block" }}
+                style={{ display: "block", minHeight: "100px" }}
                 data-ad-client="ca-pub-6253589071371136"
                 data-ad-slot={dataAdSlot}
                 data-ad-format={dataAdFormat}
