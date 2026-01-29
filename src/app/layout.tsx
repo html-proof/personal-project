@@ -28,7 +28,7 @@ import DisableDevTools from "@/components/common/DisableDevTools";
 import { UndoProvider } from "@/context/UndoContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ToastProvider } from "@/context/ToastContext";
-import InstallPrompt from "@/components/common/InstallPrompt";
+// import InstallPrompt from "@/components/common/InstallPrompt";
 
 export default function RootLayout({
     children,
@@ -63,7 +63,7 @@ export default function RootLayout({
                         <ToastProvider>
                             <Navbar />
                             <main style={{ padding: "2rem 0" }}>{children}</main>
-                            <InstallPrompt />
+                            {/* <InstallPrompt /> */}
                             {/* 
                                 AdSense disabled due to incompatibility with Next.js SSR
                                 See: https://github.com/vercel/next.js/discussions/38256
