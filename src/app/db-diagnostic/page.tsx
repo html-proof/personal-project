@@ -8,6 +8,7 @@ import {
     getSubjects,
     getNotes
 } from "@/lib/firebase/firestore";
+import { getAllNotes, getNoteStatistics, findOrphanedNotes } from "@/lib/firebase/migrations";
 
 export default function DBDiagnosticPage() {
     const [departments, setDepartments] = useState<any[]>([]);
@@ -22,6 +23,12 @@ export default function DBDiagnosticPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string>("");
 
+    // Global diagnostics
+    const [allNotes, setAllNotes] = useState<any[]>([]);
+    const [statistics, setStatistics] = useState<any>(null);
+    const [orphanedNotes, setOrphanedNotes] = useState<any[]>([]);
+    const [showGlobalView, setShowGlobalView] = useState(false);
+
     useEffect(() => {
         loadDepartments();
     }, []);
@@ -34,6 +41,27 @@ export default function DBDiagnosticPage() {
             setDepartments(data);
         } catch (err: any) {
             console.error("Error loading departments:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function loadGlobalStatistics() {
+        try {
+            setLoading(true);
+            setError("");
+            const [stats, orphaned, all] = await Promise.all([
+                getNoteStatistics(),
+                findOrphanedNotes(),
+                getAllNotes()
+            ]);
+            setStatistics(stats);
+            setOrphanedNotes(orphaned);
+            setAllNotes(all);
+            setShowGlobalView(true);
+        } catch (err: any) {
+            console.error("Error loading statistics:", err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -122,7 +150,23 @@ export default function DBDiagnosticPage() {
 
     return (
         <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
-            <h1 style={{ marginBottom: "2rem" }}>🔍 Firebase Database Diagnostic</h1>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+                <h1>🔍 Firebase Database Diagnostic</h1>
+                <button
+                    onClick={loadGlobalStatistics}
+                    style={{
+                        padding: "0.75rem 1.5rem",
+                        background: "#3b82f6",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontWeight: "600"
+                    }}
+                >
+                    📊 Show Global Statistics
+                </button>
+            </div>
 
             {error && (
                 <div style={{
@@ -138,6 +182,80 @@ export default function DBDiagnosticPage() {
             )}
 
             {loading && <p>Loading...</p>}
+
+            {/* Global Statistics Panel */}
+            {showGlobalView && statistics && (
+                <div style={{ marginBottom: "2rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                        <h2>📊 Global Database Statistics</h2>
+                        <button
+                            onClick={() => setShowGlobalView(false)}
+                            style={{
+                                padding: "0.5rem 1rem",
+                                background: "#6b7280",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer"
+                            }}
+                        >
+                            Hide
+                        </button>
+                    </div>
+
+                    {/* Statistics Cards */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+                        <div style={{ background: "#eff6ff", padding: "1.5rem", borderRadius: "8px", border: "1px solid #bfdbfe" }}>
+                            <h3 style={{ fontSize: "2rem", marginBottom: "0.5rem", color: "#1e40af" }}>{statistics.total}</h3>
+                            <p style={{ color: "#3b82f6", fontWeight: "600" }}>Total Notes</p>
+                        </div>
+                        <div style={{ background: "#d1fae5", padding: "1.5rem", borderRadius: "8px", border: "1px solid #6ee7b7" }}>
+                            <h3 style={{ fontSize: "2rem", marginBottom: "0.5rem", color: "#065f46" }}>{statistics.withSubject}</h3>
+                            <p style={{ color: "#10b981", fontWeight: "600" }}>With Subject</p>
+                        </div>
+                        <div style={{ background: "#fee2e2", padding: "1.5rem", borderRadius: "8px", border: "1px solid #fca5a5" }}>
+                            <h3 style={{ fontSize: "2rem", marginBottom: "0.5rem", color: "#991b1b" }}>{statistics.orphaned}</h3>
+                            <p style={{ color: "#ef4444", fontWeight: "600" }}>Orphaned (No Subject)</p>
+                        </div>
+                        <div style={{ background: "#fef3c7", padding: "1.5rem", borderRadius: "8px", border: "1px solid #fcd34d" }}>
+                            <h3 style={{ fontSize: "2rem", marginBottom: "0.5rem", color: "#92400e" }}>{statistics.invalid}</h3>
+                            <p style={{ color: "#f59e0b", fontWeight: "600" }}>Invalid Structure</p>
+                        </div>
+                    </div>
+
+                    {/* Orphaned Notes Details */}
+                    {orphanedNotes.length > 0 && (
+                        <div style={{ background: "#fee2e2", padding: "1.5rem", borderRadius: "8px", marginBottom: "2rem" }}>
+                            <h3 style={{ color: "#991b1b", marginBottom: "1rem" }}>⚠️ Orphaned Notes ({orphanedNotes.length})</h3>
+                            <p style={{ marginBottom: "1rem", color: "#7f1d1d" }}>
+                                These files exist but are missing critical metadata. Students cannot see them.
+                            </p>
+                            <div style={{ maxHeight: "300px", overflow: "auto" }}>
+                                {orphanedNotes.map((note, idx) => (
+                                    <div key={note.id} style={{ background: "white", padding: "1rem", marginBottom: "0.5rem", borderRadius: "6px" }}>
+                                        <p style={{ fontWeight: "600", marginBottom: "0.5rem" }}>{idx + 1}. {note.title}</p>
+                                        <p style={{ fontSize: "0.85rem", color: "#6b7280" }}>
+                                            ID: {note.id}<br />
+                                            Missing: {!note.subjectId && "subjectId "}
+                                            {!note.departmentId && "departmentId "}
+                                            {!note.batchId && "batchId "}
+                                            {!note.semesterId && "semesterId"}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* All Notes */}
+                    <div style={{ background: "#f9fafb", padding: "1.5rem", borderRadius: "8px" }}>
+                        <h3 style={{ marginBottom: "1rem" }}>📄 All Notes in Database ({allNotes.length})</h3>
+                        <pre style={{ background: "#f5f5f5", padding: "1rem", borderRadius: "6px", overflow: "auto", maxHeight: "400px", fontSize: "0.85rem" }}>
+                            {JSON.stringify(allNotes, null, 2)}
+                        </pre>
+                    </div>
+                </div>
+            )}
 
             <div style={{ display: "grid", gap: "2rem" }}>
                 {/* Departments */}
