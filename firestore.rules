@@ -7,25 +7,25 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Departments, Semesters, Subjects: Public Read, Auth Write
+    // Departments, Semesters, Subjects: Public Read/Write for Dev
     match /departments/{dept} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+      allow read, write: if true;
     }
     match /semesters/{sem} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+      allow read, write: if true;
     }
     match /subjects/{sub} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+      allow read, write: if true;
     }
 
-    // Notes: Public Read, Auth Write (optionally check uploadedBy)
+    // Folders: Public Read/Write for Dev
+    match /folders/{folder} {
+      allow read, write: if true;
+    }
+
+    // Notes: Public Read/Write for Dev
     match /notes/{note} {
-      allow read: if true;
-      allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated() && resource.data.uploadedBy == request.auth.uid;
+      allow read, write: if true;
     }
   }
 }

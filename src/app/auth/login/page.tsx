@@ -24,13 +24,11 @@ export default function LoginPage() {
 
 
         // Secure Domain Validation
-        /*
         if (!email.endsWith("@cep.ac.in")) {
             setError("Access Denied. You are not authorized to access this application.");
             setLoading(false);
             return;
         }
-        */
 
         try {
             await signIn(email, password);

@@ -41,6 +41,7 @@ export const signUp = async (name: string, email: string, pass: string) => {
     if (!email.endsWith("@cep.ac.in")) {
         throw new Error("ACCESS_DENIED");
     }
+
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(userCredential.user, { displayName: name });
     await sendEmailVerification(userCredential.user);

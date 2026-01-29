@@ -23,6 +23,9 @@ import { UndoProvider } from "@/context/UndoContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 
 
+import { ToastProvider } from "@/context/ToastContext";
+
+// ...
 
 export default function RootLayout({
     children,
@@ -54,12 +57,14 @@ export default function RootLayout({
                 <DisableDevTools />
                 <ThemeProvider>
                     <UndoProvider>
-                        <Navbar />
-                        <main style={{ padding: "2rem 0" }}>{children}</main>
-                        {/* Placeholder Ad Slot - Replace '1234567890' with actual Ad Unit ID */}
-                        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center' }}>
-                            <AdBanner dataAdSlot="3325660893" />
-                        </div>
+                        <ToastProvider>
+                            <Navbar />
+                            <main style={{ padding: "2rem 0" }}>{children}</main>
+                            {/* Placeholder Ad Slot - Replace '1234567890' with actual Ad Unit ID */}
+                            <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
+                                <AdBanner dataAdSlot="3325660893" />
+                            </div>
+                        </ToastProvider>
                     </UndoProvider>
                 </ThemeProvider>
             </body>

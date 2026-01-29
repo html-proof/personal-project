@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUserNotes, deleteNote } from "@/lib/firebase/firestore"; // Added deleteNote import if we want to add delete later, but sticking to request for now
+import { getUserNotes, deleteNote, getUserFolders } from "@/lib/firebase/firestore"; // Added deleteNote import if we want to add delete later, but sticking to request for now
 import { useAuth } from "@/lib/firebase/auth";
 import { useUndo } from "@/context/UndoContext";
-import { Eye, Download, Share2, FileText, Film, Image as ImageIcon, Trash2 } from "lucide-react";
+import { Eye, Download, Share2, FileText, Film, Image as ImageIcon, Trash2, Folder, ChevronRight, Home } from "lucide-react";
 import styles from "./MyNotes.module.css";
 
 export default function MyNotes() {
     const { user } = useAuth();
     const { scheduleDelete } = useUndo();
     const [notes, setNotes] = useState<any[]>([]);
+    const [folders, setFolders] = useState<any[]>([]);
+    const [currentFolder, setCurrentFolder] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -22,10 +24,14 @@ export default function MyNotes() {
         if (!user) return;
         setLoading(true);
         try {
-            const data = await getUserNotes(user.uid);
-            setNotes(data);
+            const [notesData, foldersData] = await Promise.all([
+                getUserNotes(user.uid),
+                getUserFolders(user.uid)
+            ]);
+            setNotes(notesData);
+            setFolders(foldersData);
         } catch (error) {
-            console.error("Failed to load notes", error);
+            console.error("Failed to load data", error);
         } finally {
             setLoading(false);
         }
@@ -79,13 +85,63 @@ export default function MyNotes() {
     };
 
     if (loading) return <div>Loading your files...</div>;
-    if (notes.length === 0) return null;
+
+    // Filter content based on current view
+    const visibleFolders = currentFolder
+        ? [] // No subfolders for now (single level)
+        : folders;
+
+    const visibleNotes = notes.filter(n => {
+        if (currentFolder) {
+            return n.folderId === currentFolder.id;
+        } else {
+            return !n.folderId; // Show notes with no folder at root
+        }
+    });
+
+    if (notes.length === 0 && folders.length === 0) return null;
 
     return (
+
         <section className={styles.section}>
-            <h2 className={styles.title}>My Uploads</h2>
+            <div className={styles.header}>
+                <h2 className={styles.title}>My Uploads</h2>
+                {currentFolder && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem", color: "#6b7280", marginTop: "0.5rem" }}>
+                        <button
+                            onClick={() => setCurrentFolder(null)}
+                            style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.25rem" }}
+                            className="hover:text-primary"
+                        >
+                            <Home size={16} /> Home
+                        </button>
+                        <ChevronRight size={16} />
+                        <span style={{ fontWeight: 600, color: "#111827" }}>{currentFolder.name}</span>
+                    </div>
+                )}
+            </div>
+
             <div className={styles.grid}>
-                {notes.map(note => (
+                {/* Render Folders (only at root) */}
+                {visibleFolders.map(folder => (
+                    <div
+                        key={folder.id}
+                        className={styles.card}
+                        onClick={() => setCurrentFolder(folder)}
+                        style={{ cursor: "pointer", borderColor: "#3b82f6" }}
+                    >
+                        <div className={styles.preview} style={{ background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Folder size={64} color="#3b82f6" fill="#bfdbfe" />
+                        </div>
+                        <div className={styles.content}>
+                            <h3 className={styles.fileName}>{folder.name}</h3>
+                            <p className={styles.fileMeta}>Folder • {notes.filter(n => n.folderId === folder.id).length} items</p>
+                        </div>
+                    </div>
+                ))}
+
+                {/* Render Files */}
+                {visibleNotes.map(note => (
                     <div key={note.id} className={styles.card}>
                         <div className={styles.preview}>
                             {getPreview(note)}

@@ -17,6 +17,7 @@ const DEPARTMENTS = "departments";
 const SEMESTERS = "semesters";
 const SUBJECTS = "subjects";
 const NOTES = "notes";
+const FOLDERS = "folders";
 
 // --- Departments ---
 export const getDepartments = async () => {
@@ -64,6 +65,24 @@ export const updateSubject = (id: string, name: string) =>
 
 export const deleteSubject = (id: string) => deleteDoc(doc(db, SUBJECTS, id));
 
+// --- Folders ---
+export const getFolders = async (subjectId: string) => {
+    const q = query(collection(db, FOLDERS), where("subjectId", "==", subjectId), orderBy("name"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
+export const createFolder = (data: any) =>
+    addDoc(collection(db, FOLDERS), { ...data, createdAt: serverTimestamp() });
+
+export const deleteFolder = (id: string) => deleteDoc(doc(db, FOLDERS, id));
+
+export const getUserFolders = async (userId: string) => {
+    const q = query(collection(db, FOLDERS), where("createdBy", "==", userId), orderBy("name"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
 // --- Notes ---
 export const getNotes = async (subjectId: string) => {
     const q = query(collection(db, NOTES), where("subjectId", "==", subjectId), orderBy("createdAt", "desc"));
@@ -71,10 +90,21 @@ export const getNotes = async (subjectId: string) => {
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 };
 
+
+
 export const createNote = (data: any) =>
     addDoc(collection(db, NOTES), { ...data, createdAt: serverTimestamp() });
 
 export const deleteNote = (id: string) => deleteDoc(doc(db, NOTES, id));
+
+export const getFolderNotes = async (folderId: string) => {
+    const q = query(collection(db, NOTES), where("folderId", "==", folderId), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
+export const moveNote = (id: string, folderId: string | null) =>
+    updateDoc(doc(db, NOTES, id), { folderId });
 
 export const getUserNotes = async (userId: string) => {
     const q = query(collection(db, NOTES), where("uploadedBy", "==", userId), orderBy("createdAt", "desc"));

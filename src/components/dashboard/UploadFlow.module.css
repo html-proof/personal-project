@@ -74,6 +74,7 @@
 .dropText span {
     color: var(--primary);
     text-decoration: underline;
+    cursor: pointer;
 }
 
 .subText {
