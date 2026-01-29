@@ -60,10 +60,9 @@ export default function RootLayout({
                         <ToastProvider>
                             <Navbar />
                             <main style={{ padding: "2rem 0" }}>{children}</main>
-                            {/* AdBanner temporarily disabled due to width calculation issues */}
-                            {/* <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
+                            <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
                                 <AdBanner dataAdSlot="3325660893" />
-                            </div> */}
+                            </div>
                         </ToastProvider>
                     </UndoProvider>
                 </ThemeProvider>
