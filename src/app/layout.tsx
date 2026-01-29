@@ -10,7 +10,8 @@ export const metadata: Metadata = {
     title: "College of Engineering Poonjar",
     description: "University E-Learning Portal",
     icons: {
-        icon: "/logo.png",
+        icon: "/icon-192.png",
+        apple: "/icon-192.png",
     },
     manifest: "/manifest.json",
     themeColor: "#2563eb",
