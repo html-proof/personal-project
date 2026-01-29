@@ -42,7 +42,12 @@ export default function NotesBrowser() {
         setSelectedSub(null);
         setSearchQuery("");
         setIsSearching(false);
-        setBatches(await getBatches(dept.id));
+        try {
+            setBatches(await getBatches(dept.id));
+        } catch (error) {
+            console.error("Failed to load batches", error);
+            setBatches([]);
+        }
     }
 
     async function handleBatchClick(batch: any) {
@@ -53,7 +58,12 @@ export default function NotesBrowser() {
         setSelectedBatch(batch);
         setSelectedSem(null);
         setSelectedSub(null);
-        setSemesters(await getSemesters(batch.id));
+        try {
+            setSemesters(await getSemesters(batch.id));
+        } catch (error) {
+            console.error("Failed to load semesters", error);
+            setSemesters([]);
+        }
     }
 
     async function handleSemClick(sem: any) {
@@ -63,7 +73,12 @@ export default function NotesBrowser() {
         }
         setSelectedSem(sem);
         setSelectedSub(null);
-        setSubjects(await getSubjects(sem.id));
+        try {
+            setSubjects(await getSubjects(sem.id));
+        } catch (error) {
+            console.error("Failed to load subjects", error);
+            setSubjects([]);
+        }
     }
 
     async function handleSubClick(sub: any) {
@@ -73,8 +88,14 @@ export default function NotesBrowser() {
         }
         setSelectedSub(sub);
         setLoading(true);
-        setNotes(await getNotes(sub.id));
-        setLoading(false);
+        try {
+            setNotes(await getNotes(sub.id));
+        } catch (error) {
+            console.error("Failed to load notes", error);
+            setNotes([]);
+        } finally {
+            setLoading(false);
+        }
     }
 
     const handleSearch = async (e: React.FormEvent) => {
