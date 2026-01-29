@@ -37,8 +37,7 @@ export default function DynamicBackground() {
                 });
 
             } catch (error) {
-                console.error("Background data fetch failed:", error);
-                // Fallback: System time
+                // Silently fallback to system time if API fails
                 const hour = new Date().getHours();
                 setWeather({
                     isDay: hour > 6 && hour < 18,
