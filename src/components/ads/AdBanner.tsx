@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface AdBannerProps {
     dataAdSlot: string;
@@ -14,39 +14,59 @@ const AdBanner: React.FC<AdBannerProps> = ({
     dataFullWidthResponsive = true,
 }) => {
     const [isMounted, setIsMounted] = useState(false);
-    const [adPushed, setAdPushed] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const adPushedRef = useRef(false);
 
-    // Step 1: Set mounted state (client-side only)
     useEffect(() => {
         setIsMounted(true);
     }, []);
 
-    // Step 2: Initialize ad after mount with delay
     useEffect(() => {
-        if (!isMounted || adPushed) return;
+        if (!isMounted || adPushedRef.current) return;
 
-        const timer = setTimeout(() => {
-            try {
-                if (typeof window !== 'undefined') {
-                    (window as any).adsbygoogle = (window as any).adsbygoogle || [];
-                    (window as any).adsbygoogle.push({});
-                    setAdPushed(true);
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        const tryInitAd = () => {
+            attempts++;
+
+            // Check if container has valid width
+            if (containerRef.current) {
+                const width = containerRef.current.offsetWidth;
+
+                if (width > 0) {
+                    // Container has valid width, initialize ad
+                    try {
+                        (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+                        (window as any).adsbygoogle.push({});
+                        adPushedRef.current = true;
+                        console.log(`AdSense initialized successfully with width: ${width}px`);
+                    } catch (err) {
+                        console.error("AdSense initialization error:", err);
+                    }
+                } else if (attempts < maxAttempts) {
+                    // Width is 0, retry after delay
+                    console.log(`Container width is 0, retrying... (attempt ${attempts}/${maxAttempts})`);
+                    setTimeout(tryInitAd, 500);
+                } else {
+                    console.error("Failed to initialize AdSense: container width remained 0 after max attempts");
                 }
-            } catch (err) {
-                console.error("AdSense initialization error:", err);
             }
-        }, 2000); // 2 second delay to ensure layout is stable
+        };
+
+        // Start trying after initial delay
+        const timer = setTimeout(tryInitAd, 1000);
 
         return () => clearTimeout(timer);
-    }, [isMounted, adPushed]);
+    }, [isMounted]);
 
-    // Don't render on server side
     if (!isMounted) {
         return (
             <div style={{
                 minHeight: "100px",
                 width: "100%",
-                margin: "20px 0",
+                maxWidth: "1200px",
+                margin: "20px auto",
                 background: "#f3f4f6"
             }} />
         );
@@ -54,12 +74,14 @@ const AdBanner: React.FC<AdBannerProps> = ({
 
     return (
         <div
+            ref={containerRef}
             style={{
                 overflow: "hidden",
                 minHeight: "100px",
                 width: "100%",
+                maxWidth: "1200px",
                 textAlign: "center",
-                margin: "20px 0",
+                margin: "20px auto",
                 padding: "10px"
             }}
         >
