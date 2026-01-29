@@ -1,0 +1,41 @@
+{
+    "name": "College of Engineering Poonjar - E-Learning Platform",
+    "short_name": "CEP Notes",
+    "description": "Access study materials, notes, and resources for College of Engineering Poonjar students",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#2563eb",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "education",
+        "productivity"
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "Browse Notes",
+            "url": "/#browse",
+            "description": "Browse available study materials"
+        },
+        {
+            "name": "My Uploads",
+            "url": "/dashboard",
+            "description": "View your uploaded files"
+        }
+    ]
+}
