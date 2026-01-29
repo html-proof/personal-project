@@ -5,22 +5,25 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Departments, Batches, Semesters, Subjects: Public Read, Auth Write
+    // Departments: Public Read, Auth Write
     match /departments/{dept} {
       allow read: if true;
       allow write: if isAuthenticated();
     }
-    
+
+    // Batches: Public Read, Auth Write
     match /batches/{batch} {
       allow read: if true;
       allow write: if isAuthenticated();
     }
-    
+
+    // Semesters: Public Read, Auth Write
     match /semesters/{sem} {
       allow read: if true;
       allow write: if isAuthenticated();
     }
-    
+
+    // Subjects: Public Read, Auth Write
     match /subjects/{sub} {
       allow read: if true;
       allow write: if isAuthenticated();
@@ -32,7 +35,7 @@ service cloud.firestore {
       allow write: if isAuthenticated();
     }
 
-    // Notes: Public Read, Auth Write (with owner check for strictness if needed, but keeping simple for now)
+    // Notes: Public Read, Auth Write
     match /notes/{note} {
       allow read: if true;
       allow create: if isAuthenticated();

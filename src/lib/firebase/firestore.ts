@@ -37,9 +37,12 @@ export const deleteDepartment = (id: string) => deleteDoc(doc(db, DEPARTMENTS, i
 
 // --- Batches ---
 export const getBatches = async (departmentId: string) => {
-    const q = query(collection(db, BATCHES), where("departmentId", "==", departmentId), orderBy("name"));
+    const q = query(collection(db, BATCHES), where("departmentId", "==", departmentId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Client-side sort to avoid composite index requirement
+    return snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a: any, b: any) => (a.name || "").localeCompare(b.name || ""));
 };
 
 export const createBatch = (departmentId: string, name: string) =>
@@ -83,9 +86,11 @@ export const deleteSubject = (id: string) => deleteDoc(doc(db, SUBJECTS, id));
 
 // --- Folders ---
 export const getFolders = async (subjectId: string) => {
-    const q = query(collection(db, FOLDERS), where("subjectId", "==", subjectId), orderBy("name"));
+    const q = query(collection(db, FOLDERS), where("subjectId", "==", subjectId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    return snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a: any, b: any) => (a.name || "").localeCompare(b.name || ""));
 };
 
 export const createFolder = (data: any) =>
@@ -107,9 +112,15 @@ export const getUserFolders = async (userId: string) => {
 
 // --- Notes ---
 export const getNotes = async (subjectId: string) => {
-    const q = query(collection(db, NOTES), where("subjectId", "==", subjectId), orderBy("createdAt", "desc"));
+    const q = query(collection(db, NOTES), where("subjectId", "==", subjectId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    return snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a: any, b: any) => {
+            const tA = a.createdAt?.seconds || 0;
+            const tB = b.createdAt?.seconds || 0;
+            return tB - tA; // Descending
+        });
 };
 
 
@@ -123,9 +134,15 @@ export const updateNote = (id: string, updates: any) =>
 export const deleteNote = (id: string) => deleteDoc(doc(db, NOTES, id));
 
 export const getFolderNotes = async (folderId: string) => {
-    const q = query(collection(db, NOTES), where("folderId", "==", folderId), orderBy("createdAt", "desc"));
+    const q = query(collection(db, NOTES), where("folderId", "==", folderId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    return snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a: any, b: any) => {
+            const tA = a.createdAt?.seconds || 0;
+            const tB = b.createdAt?.seconds || 0;
+            return tB - tA; // Descending
+        });
 };
 
 export const moveNote = (id: string, folderId: string | null) =>
@@ -142,9 +159,15 @@ export const deleteNotesBulk = async (ids: string[]) => {
 };
 
 export const getUserNotes = async (userId: string) => {
-    const q = query(collection(db, NOTES), where("uploadedBy", "==", userId), orderBy("createdAt", "desc"));
+    const q = query(collection(db, NOTES), where("uploadedBy", "==", userId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    return snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a: any, b: any) => {
+            const tA = a.createdAt?.seconds || 0;
+            const tB = b.createdAt?.seconds || 0;
+            return tB - tA; // Descending
+        });
 };
 
 export const searchNotes = async (departmentId: string, searchTerm: string) => {
