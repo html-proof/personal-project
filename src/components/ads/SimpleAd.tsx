@@ -26,13 +26,15 @@ export default function SimpleAd({
         try {
             // Push ad after a delay to ensure DOM is ready
             setTimeout(() => {
-                if (window && (window as any).adsbygoogle && adRef.current) {
+                if (window && adRef.current) {
+                    (window as any).adsbygoogle = (window as any).adsbygoogle || [];
                     (window as any).adsbygoogle.push({});
                     initialized.current = true;
                 }
             }, 500);
         } catch (err) {
             // Silently fail
+            console.error("AdSense Error:", err);
         }
     }, []);
 
