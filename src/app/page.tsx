@@ -3,6 +3,7 @@
 import Link from "next/link";
 import NotesBrowser from "@/components/public/NotesBrowser";
 import DynamicBackground from "@/components/layout/DynamicBackground";
+import SimpleAd from "@/components/ads/SimpleAd";
 import { ArrowDown, BookOpen, Layers, Users } from "lucide-react";
 
 export default function Home() {
@@ -92,7 +93,10 @@ export default function Home() {
 
             </section>
 
-            {/* AdSense removed - incompatible with Next.js SSR */}
+            {/* Ad Section */}
+            <div className="container" style={{ marginBottom: "2rem" }}>
+                <SimpleAd adSlot="3325660893" />
+            </div>
 
             {/* 3. Main Browser Area */}
             <div id="browse" style={{ padding: "2rem 1rem 4rem", background: "linear-gradient(to bottom, rgba(0,0,0,0.02) 0%, var(--bg-gradient-end) 100%)" }}>
