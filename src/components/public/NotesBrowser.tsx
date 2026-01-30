@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getDepartments, getBatches, getSemesters, getSubjects, getNotes, searchNotes, getFolders } from "@/lib/firebase/firestore";
 import { ChevronRight, File, Film, Image as ImageIcon, Download, Eye, Share2, Search, X, Folder, ArrowLeft } from "lucide-react";
+import FilePreviewModal from "./FilePreviewModal";
 import styles from "./NotesBrowser.module.css";
 
 export default function NotesBrowser() {
@@ -20,7 +21,9 @@ export default function NotesBrowser() {
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]);
+
     const [isSearching, setIsSearching] = useState(false);
+    const [previewNote, setPreviewNote] = useState<any>(null);
 
     useEffect(() => {
         loadDepartments();
@@ -270,7 +273,7 @@ export default function NotesBrowser() {
                                         <div
                                             key={note.id}
                                             className={styles.noteCard}
-                                            onClick={() => window.open(note.fileUrl, '_blank')}
+                                            onClick={() => setPreviewNote(note)}
                                             style={{ cursor: "pointer" }}
                                         >
                                             <div className={styles.preview}>
@@ -280,7 +283,7 @@ export default function NotesBrowser() {
                                                 <h4 className={styles.noteName} title={note.title}>{note.title}</h4>
                                                 <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
                                                 <div className={styles.actions}>
-                                                    <a href={note.fileUrl} target="_blank" rel="noopener noreferrer" className={styles.btn} title="View" onClick={(e) => e.stopPropagation()}><Eye size={18} /></a>
+                                                    <button onClick={(e) => { e.stopPropagation(); setPreviewNote(note); }} className={styles.btn} title="View"><Eye size={18} /></button>
                                                     <a href={note.fileUrl} download target="_blank" rel="noopener noreferrer" className={styles.btn} title="Download" onClick={(e) => e.stopPropagation()}><Download size={18} /></a>
                                                     <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
                                                 </div>
@@ -425,7 +428,7 @@ export default function NotesBrowser() {
                                             <div
                                                 key={note.id}
                                                 className={styles.noteCard}
-                                                onClick={() => window.open(note.fileUrl, '_blank')}
+                                                onClick={() => setPreviewNote(note)}
                                                 style={{ cursor: "pointer" }}
                                             >
                                                 <div className={styles.preview}>
@@ -435,7 +438,7 @@ export default function NotesBrowser() {
                                                     <h4 className={styles.noteName} title={note.title}>{note.title}</h4>
                                                     <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
                                                     <div className={styles.actions}>
-                                                        <a href={note.fileUrl} target="_blank" rel="noopener noreferrer" className={styles.btn} title="View" onClick={(e) => e.stopPropagation()}><Eye size={18} /></a>
+                                                        <button onClick={(e) => { e.stopPropagation(); setPreviewNote(note); }} className={styles.btn} title="View"><Eye size={18} /></button>
                                                         <a href={note.fileUrl} download target="_blank" rel="noopener noreferrer" className={styles.btn} title="Download" onClick={(e) => e.stopPropagation()}><Download size={18} /></a>
                                                         <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
                                                     </div>
@@ -448,6 +451,13 @@ export default function NotesBrowser() {
                         </>
                     )}
                 </div>
+            )}
+            {/* Preview Modal */}
+            {previewNote && (
+                <FilePreviewModal
+                    file={previewNote}
+                    onClose={() => setPreviewNote(null)}
+                />
             )}
         </div>
     );
