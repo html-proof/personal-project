@@ -22,9 +22,7 @@ export default function ForgotPasswordPage() {
 
         // Validate email domain
         if (!isAllowedEmail(email)) {
-            const msg = "Invalid email domain. Please use your institutional email.";
-            setError(msg);
-            addToast(msg, "error");
+            addToast("Can't Access SORRY", "error");
             setLoading(false);
             return;
         }
