@@ -29,11 +29,18 @@ export function useAuth() {
 }
 
 // Sign In
-export const signIn = (email: string, pass: string) => {
+export const signIn = async (email: string, pass: string) => {
     if (!isAllowedEmail(email)) {
         throw new Error("ACCESS_DENIED");
     }
-    return signInWithEmailAndPassword(auth, email, pass);
+    const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+
+    // Check if email is verified
+    if (!userCredential.user.emailVerified) {
+        throw new Error("EMAIL_NOT_VERIFIED");
+    }
+
+    return userCredential;
 };
 
 // Sign Up (for initial seeding or admin use)

@@ -68,7 +68,7 @@ export default function Navbar() {
 
                     {!loading && (
                         <>
-                            {user ? (
+                            {user && user.emailVerified ? (
                                 <>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: '1rem' }}>
                                         <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{user.displayName || user.email?.split('@')[0]}</span>

@@ -28,6 +28,11 @@ export default function LoginPage() {
         } catch (err: any) {
             if (err.message === "ACCESS_DENIED") {
                 addToast("Can't ACCESS sorry", "error");
+            } else if (err.message === "EMAIL_NOT_VERIFIED") {
+                setError("Please verify your email before logging in.");
+                addToast("Email not verified. Please check your inbox.", "error");
+                // Optionally redirect to verify-email page
+                setTimeout(() => router.push("/auth/verify-email"), 2000);
             } else {
                 setError("Invalid email or password.");
             }
@@ -81,7 +86,7 @@ export default function LoginPage() {
                                     color: "var(--text-main)",
                                     fontFamily: "inherit"
                                 }}
-                                placeholder={`email${CONFIG.ALLOWED_EMAIL_DOMAIN}`}
+                                placeholder="Email"
                             />
                         </div>
                     </div>

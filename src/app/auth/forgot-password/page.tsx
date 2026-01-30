@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
                                     border: "1px solid var(--border)",
                                     fontFamily: "inherit"
                                 }}
-                                placeholder="email@university.edu"
+                                placeholder="Email"
                             />
                         </div>
                     </div>
