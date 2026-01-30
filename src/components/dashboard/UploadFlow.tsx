@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UploadCloud, File, Film, Image as ImageIcon, CheckCircle, XCircle, Trash2 } from "lucide-react";
+import { UploadCloud, File, Film, Image as ImageIcon, CheckCircle, XCircle, Trash2, FileSpreadsheet, Presentation } from "lucide-react";
 import {
     getDepartments,
     getBatches,
@@ -186,6 +186,8 @@ export default function UploadFlow() {
         if (type.includes("pdf")) return <File size={32} className={styles.iconDoc} />;
         if (type.includes("video")) return <Film size={32} className={styles.iconVid} />;
         if (type.includes("image")) return <ImageIcon size={32} className={styles.iconImg} />;
+        if (type.includes("excel") || type.includes("spreadsheet") || type.includes("csv")) return <FileSpreadsheet size={32} color="#16a34a" />;
+        if (type.includes("powerpoint") || type.includes("presentation")) return <Presentation size={32} color="#f97316" />;
         return <UploadCloud size={32} />;
     };
 

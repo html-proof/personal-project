@@ -24,6 +24,13 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
     const isImage = file.fileType.startsWith("image/");
     const isVideo = file.fileType.startsWith("video/");
     const isPdf = file.fileType.includes("pdf");
+    const isOfficeDoc =
+        file.fileType.includes("msword") ||
+        file.fileType.includes("wordprocessingml") ||
+        file.fileType.includes("ms-excel") ||
+        file.fileType.includes("spreadsheetml") ||
+        file.fileType.includes("ms-powerpoint") ||
+        file.fileType.includes("presentationml");
 
     return (
         <div
@@ -144,7 +151,7 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                         />
                     )}
 
-                    {isPdf && (
+                    {(isPdf || isOfficeDoc) && (
                         <iframe
                             src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.fileUrl)}&embedded=true`}
                             style={{
@@ -158,7 +165,7 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                         />
                     )}
 
-                    {!isImage && !isVideo && !isPdf && (
+                    {!isImage && !isVideo && !isPdf && !isOfficeDoc && (
                         <div style={{
                             background: "var(--surface)",
                             padding: "3rem",
