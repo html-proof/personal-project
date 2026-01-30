@@ -369,7 +369,7 @@ export default function NotesBrowser() {
                             </button>
                         )}
                         <h3 className={styles.notesTitle} style={{ margin: 0 }}>
-                            {selectedFolder ? selectedFolder.name : (selectedSub.name === "General Materials" ? "Files" : `Materials for ${selectedSub.name}`)}
+                            {selectedFolder ? selectedFolder.name : (selectedSub.name === "General Materials" ? "FILES" : `Materials for ${selectedSub.name}`)}
                         </h3>
                     </div>
 
