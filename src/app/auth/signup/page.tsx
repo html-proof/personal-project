@@ -140,7 +140,7 @@ export default function SignupPage() {
                                     color: "var(--text-main)",
                                     fontFamily: "inherit"
                                 }}
-                                placeholder={`teacher${CONFIG.ALLOWED_EMAIL_DOMAIN}`}
+                                placeholder={`email${CONFIG.ALLOWED_EMAIL_DOMAIN}`}
                             />
                         </div>
                     </div>
