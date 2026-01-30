@@ -64,17 +64,14 @@ export const signOut = () => firebaseSignOut(auth);
 export const checkEmailExists = async (email: string): Promise<boolean> => {
     try {
         const methods = await fetchSignInMethodsForEmail(auth, email);
-        console.log(`Email ${email} check - Sign-in methods:`, methods);
-        const exists = methods.length > 0;
-        console.log(`Email ${email} exists:`, exists);
-        return exists;
+        return methods.length > 0;
     } catch (error: any) {
-        console.error("Error checking email:", error);
         // If error code is auth/invalid-email, the email format is wrong
         if (error.code === 'auth/invalid-email') {
             return false;
         }
-        // For other errors, assume email doesn't exist to be safe
+        // For other errors, return false to be safe
+        console.error("Error checking email existence:", error);
         return false;
     }
 };
