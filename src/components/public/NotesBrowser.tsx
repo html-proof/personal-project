@@ -267,7 +267,12 @@ export default function NotesBrowser() {
                             ) : (
                                 <div className={styles.notesGrid}>
                                     {searchResults.map(note => (
-                                        <div key={note.id} className={styles.noteCard}>
+                                        <div
+                                            key={note.id}
+                                            className={styles.noteCard}
+                                            onClick={() => window.open(note.fileUrl, '_blank')}
+                                            style={{ cursor: "pointer" }}
+                                        >
                                             <div className={styles.preview}>
                                                 {getPreview(note)}
                                             </div>
@@ -275,9 +280,9 @@ export default function NotesBrowser() {
                                                 <h4 className={styles.noteName} title={note.title}>{note.title}</h4>
                                                 <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
                                                 <div className={styles.actions}>
-                                                    <a href={note.fileUrl} target="_blank" rel="noopener noreferrer" className={styles.btn} title="View"><Eye size={18} /></a>
-                                                    <a href={note.fileUrl} download target="_blank" rel="noopener noreferrer" className={styles.btn} title="Download"><Download size={18} /></a>
-                                                    <button onClick={() => handleShare(note.fileUrl)} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
+                                                    <a href={note.fileUrl} target="_blank" rel="noopener noreferrer" className={styles.btn} title="View" onClick={(e) => e.stopPropagation()}><Eye size={18} /></a>
+                                                    <a href={note.fileUrl} download target="_blank" rel="noopener noreferrer" className={styles.btn} title="Download" onClick={(e) => e.stopPropagation()}><Download size={18} /></a>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -417,7 +422,12 @@ export default function NotesBrowser() {
                                 ) : (
                                     <div className={styles.notesGrid}>
                                         {filteredNotes.map(note => (
-                                            <div key={note.id} className={styles.noteCard}>
+                                            <div
+                                                key={note.id}
+                                                className={styles.noteCard}
+                                                onClick={() => window.open(note.fileUrl, '_blank')}
+                                                style={{ cursor: "pointer" }}
+                                            >
                                                 <div className={styles.preview}>
                                                     {getPreview(note)}
                                                 </div>
@@ -425,9 +435,9 @@ export default function NotesBrowser() {
                                                     <h4 className={styles.noteName} title={note.title}>{note.title}</h4>
                                                     <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
                                                     <div className={styles.actions}>
-                                                        <a href={note.fileUrl} target="_blank" rel="noopener noreferrer" className={styles.btn} title="View"><Eye size={18} /></a>
-                                                        <a href={note.fileUrl} download target="_blank" rel="noopener noreferrer" className={styles.btn} title="Download"><Download size={18} /></a>
-                                                        <button onClick={() => handleShare(note.fileUrl)} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
+                                                        <a href={note.fileUrl} target="_blank" rel="noopener noreferrer" className={styles.btn} title="View" onClick={(e) => e.stopPropagation()}><Eye size={18} /></a>
+                                                        <a href={note.fileUrl} download target="_blank" rel="noopener noreferrer" className={styles.btn} title="Download" onClick={(e) => e.stopPropagation()}><Download size={18} /></a>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
                                                     </div>
                                                 </div>
                                             </div>
