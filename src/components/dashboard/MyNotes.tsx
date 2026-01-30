@@ -49,7 +49,6 @@ export default function MyNotes() {
     const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null);
     const { addToast } = useToast();
 
-    // Confirmation Modal State
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
         title: string;
@@ -66,23 +65,18 @@ export default function MyNotes() {
         isDanger: false
     });
 
-    // Create Folder State
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [newFolderName, setNewFolderName] = useState("");
 
-    // Replace File State
     const [replacingNoteId, setReplacingNoteId] = useState<string | null>(null);
 
-    // Selection & Bulk State
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
 
-    // Editing State (Rename)
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editName, setEditName] = useState("");
     const [isEditingFolder, setIsEditingFolder] = useState(false);
 
-    // UI state
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
     useEffect(() => {
@@ -126,15 +120,12 @@ export default function MyNotes() {
             const link = document.createElement('a');
             link.href = url;
 
-            // Determine extension
             let extension = "";
-            // Try to extract from URL first (remove query params)
             const urlPath = note.fileUrl.split('?')[0];
             const dotIndex = urlPath.lastIndexOf('.');
-            if (dotIndex !== -1 && urlPath.length - dotIndex <= 5) { // Sanity check length
+            if (dotIndex !== -1 && urlPath.length - dotIndex <= 5) {
                 extension = urlPath.substring(dotIndex);
             } else {
-                // Fallback mime types
                 const type = note.fileType || "";
                 if (type.includes("pdf")) extension = ".pdf";
                 else if (type.includes("image/png")) extension = ".png";
@@ -145,7 +136,6 @@ export default function MyNotes() {
                 else if (type.includes("text/plain")) extension = ".txt";
             }
 
-            // If note.title already has extension, don't duplicate
             let filename = note.title;
             if (!filename.toLowerCase().endsWith(extension.toLowerCase())) {
                 filename += extension;
@@ -166,23 +156,18 @@ export default function MyNotes() {
         if (!e.target.files || e.target.files.length === 0 || !replacingNoteId) return;
         const file = e.target.files[0];
 
-        // Optimistic update
         addToast("Replacing file...", "info");
 
         try {
-            // 1. Upload new file (same path structure or new unique path)
             const uniqueId = Math.random().toString(36).substring(2, 10);
             const path = `uploads/${user?.uid}/${Date.now()}_${uniqueId}_${file.name}`;
             const url = await uploadFile(file, path);
 
-            // 2. Update Note Record
             await updateNote(replacingNoteId, {
                 fileUrl: url,
                 fileType: file.type,
-                // optionally update title: title: file.name
             });
 
-            // 3. Update UI
             setNotes(prev => prev.map(n => n.id === replacingNoteId ? { ...n, fileUrl: url, fileType: file.type } : n));
             addToast("File replaced successfully", "success");
         } catch (error) {
@@ -190,7 +175,6 @@ export default function MyNotes() {
             addToast("Failed to replace file", "error");
         } finally {
             setReplacingNoteId(null);
-            // Reset input
             e.target.value = "";
         }
     };
@@ -198,14 +182,9 @@ export default function MyNotes() {
     const handleCreateFolder = async () => {
         if (!newFolderName.trim() || !user) return;
         try {
-            // If in a subfolder (not supported deeply yet, but prepared)
-            // For now create at root or current level if supported
             const ref = await createFolder({
                 name: newFolderName.trim(),
                 createdBy: user.uid,
-                // If we are in a folder, this would be a subfolder, depending on schema support for parentId
-                // For now, folders are flat in this view unless we link them. 
-                // Assuming simple flat folders for now as per schema.
             });
 
             const newFolder = {
@@ -291,9 +270,7 @@ export default function MyNotes() {
                 cancelText: "Cancel",
                 isDanger: true,
                 onConfirm: async () => {
-                    // This logic currently only supports "Delete All" for simplicity in modal
-                    // To support "Move then Delete", we'd need a multi-choice modal or separate interactions
-                    // Customizing behavior: Delete All
+
                     const ids = folderNotes.map(n => n.id);
                     await deleteNotesBulk(ids);
                     await deleteFolder(folder.id);
@@ -302,8 +279,7 @@ export default function MyNotes() {
                     addToast("Folder and contents deleted", "success");
                 }
             });
-            // Note: Ideally we'd offer a "Move to Home" option button in the modal. 
-            // For now, user can manually move items out if they want to save them.
+
         } else {
             setConfirmModal({
                 isOpen: true,
@@ -324,19 +300,18 @@ export default function MyNotes() {
     };
 
     const handleDelete = async (id: string) => {
-        // Optimistic UI Update
+
         const noteToDelete = notes.find(n => n.id === id);
         if (!noteToDelete) return;
 
-        // Remove from UI immediately
+
         setNotes(prev => prev.filter(n => n.id !== id));
 
-        // Define Undo Callback
+
         const handleUndo = () => {
             setNotes(prev => [noteToDelete, ...prev]);
         };
 
-        // Schedule Logic
         scheduleDelete(
             id,
             async () => {
@@ -352,7 +327,7 @@ export default function MyNotes() {
             return <img src={note.fileUrl} alt={note.title} className={styles.previewImg} />;
         }
         if (note.fileType.startsWith("video/")) {
-            return <video src={note.fileUrl} className={styles.previewVideo} controls={false} />; // Maybe muted hover? For now static
+            return <video src={note.fileUrl} className={styles.previewVideo} controls={false} />;
         }
         return (
             <div className={styles.previewIcon}>
@@ -363,16 +338,15 @@ export default function MyNotes() {
 
     if (loading) return <div>Loading your files...</div>;
 
-    // Filter content based on current view
     const visibleFolders = currentFolder
-        ? [] // No subfolders for now (single level)
+        ? []
         : folders;
 
     const visibleNotes = notes.filter(n => {
         if (currentFolder) {
             return n.folderId === currentFolder.id;
         } else {
-            return !n.folderId; // Show notes with no folder at root
+            return !n.folderId;
         }
     });
 
@@ -381,7 +355,6 @@ export default function MyNotes() {
     return (
 
         <section className={styles.section}>
-            {/* Hidden Input for File Replacement */}
             <input
                 type="file"
                 id="replace-file-input"
@@ -431,7 +404,6 @@ export default function MyNotes() {
             </div>
 
             <div className={styles.grid}>
-                {/* Render Folders (only at root) */}
                 {visibleFolders.map(folder => (
                     <div
                         key={folder.id}
@@ -483,7 +455,6 @@ export default function MyNotes() {
                     </div>
                 ))}
 
-                {/* Render Files */}
                 {visibleNotes.map(note => (
                     <div
                         key={note.id}
