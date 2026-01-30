@@ -16,7 +16,6 @@ export default function ForgotPasswordPage() {
         e.preventDefault();
         setLoading(true);
 
-        // Validate email domain
         if (!isAllowedEmail(email)) {
             addToast("Please enter a valid email address.", "error");
             setLoading(false);
@@ -24,25 +23,17 @@ export default function ForgotPasswordPage() {
         }
 
         try {
-            // Smart Fallback Flow:
-            // 1. We TRY to check if the user exists
             const emailExists = await checkEmailExists(email);
 
-            // 2. We sending the reset email in BOTH cases
-            // (This ensures valid users are NEVER blocked, even if Firebase hides them)
             await resetPassword(email);
 
-            // 3. We show the appropriate message
             if (emailExists) {
-                // If we explicitly found them (Protection OFF)
                 addToast("Password reset link has been sent to your email.", "success");
             } else {
-                // If we couldn't find them (Protection ON or User Missing)
-                // We show a safe message and didn't block the email sending!
                 addToast("If an account exists with this email, a password reset link has been sent.", "success");
             }
 
-            setEmail(""); // Clear form
+            setEmail("");
         } catch (err: any) {
             console.error("Error in handleReset:", err);
             addToast("Something went wrong. Please try again later.", "error");
