@@ -416,16 +416,16 @@ export default function MyNotes() {
                 </div>
 
                 {currentFolder && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem", color: "#6b7280", marginTop: "0.5rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
                         <button
                             onClick={() => setCurrentFolder(null)}
-                            style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.25rem" }}
+                            style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.25rem", color: "inherit" }}
                             className="hover:text-primary"
                         >
                             <Home size={16} /> Home
                         </button>
                         <ChevronRight size={16} />
-                        <span style={{ fontWeight: 600, color: "#111827" }}>{currentFolder.name}</span>
+                        <span style={{ fontWeight: 600, color: "var(--text-main)" }}>{currentFolder.name}</span>
                     </div>
                 )}
             </div>
@@ -439,8 +439,8 @@ export default function MyNotes() {
                         onClick={() => editingId !== folder.id && setCurrentFolder(folder)}
                         style={{ cursor: "pointer" }}
                     >
-                        <div className={styles.preview} style={{ background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <Folder size={64} color="#3b82f6" fill="#bfdbfe" />
+                        <div className={styles.preview}>
+                            <Folder size={64} color="var(--primary)" fill="rgba(59, 130, 246, 0.2)" />
                             <div style={{ position: 'absolute', top: 8, right: 8 }}>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === folder.id ? null : folder.id); }}

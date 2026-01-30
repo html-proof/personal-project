@@ -17,7 +17,7 @@
 .title {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-main);
 }
 
 .createBtn {
@@ -25,19 +25,19 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background-color: white;
-    border: 1px solid #e5e7eb;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 6px;
     font-size: 0.9rem;
     font-weight: 500;
-    color: #374151;
+    color: var(--text-main);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .createBtn:hover {
-    background-color: #f9fafb;
-    border-color: #d1d5db;
+    background-color: var(--surface-hover);
+    border-color: var(--primary);
 }
 
 .hiddenInput {
@@ -51,8 +51,8 @@
 }
 
 .card {
-    background: white;
-    border: 1px solid #e5e7eb;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.2s;
@@ -67,9 +67,9 @@
 }
 
 .cardSelected {
-    border-color: #3b82f6 !important;
-    background: #eff6ff !important;
-    box-shadow: 0 0 0 2px #3b82f6 !important;
+    border-color: var(--primary) !important;
+    background: var(--surface-hover) !important;
+    box-shadow: 0 0 0 2px var(--primary) !important;
 }
 
 .checkbox {
@@ -163,4 +163,140 @@
 .btnPrimary:hover {
     background: var(--primary-hover);
     color: white;
+}
+
+.menuBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.menuBtn:hover {
+    background: var(--surface-hover);
+    color: var(--text-main);
+}
+
+.moreMenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    padding: 0.5rem;
+    z-index: 20;
+    min-width: 150px;
+}
+
+.menuItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.menuItem:hover {
+    background: var(--surface-hover);
+}
+
+.menuItemDanger {
+    color: var(--danger);
+}
+
+.menuItemDanger:hover {
+    background: rgba(220, 38, 38, 0.1);
+}
+
+.editInput {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.actionBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+}
+
+.actionBtn:hover {
+    color: var(--text-main);
+}
+
+.bulkBar {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    z-index: 50;
+    animation: slideUp 0.3s ease-out;
+}
+
+.bulkInfo {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.bulkActions {
+    display: flex;
+    gap: 1rem;
+}
+
+.bulkBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: var(--text-main);
+    transition: color 0.2s;
+}
+
+.bulkBtn:hover {
+    color: var(--primary);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translate(-50%, 100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
 }

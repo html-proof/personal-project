@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getDepartments, getBatches, getSemesters, getSubjects, getNotes, searchNotes } from "@/lib/firebase/firestore";
-import { ChevronRight, File, Film, Image as ImageIcon, Download, Eye, Share2, Search, X } from "lucide-react";
+import { getDepartments, getBatches, getSemesters, getSubjects, getNotes, searchNotes, getFolders } from "@/lib/firebase/firestore";
+import { ChevronRight, File, Film, Image as ImageIcon, Download, Eye, Share2, Search, X, Folder, ArrowLeft } from "lucide-react";
 import styles from "./NotesBrowser.module.css";
 
 export default function NotesBrowser() {
@@ -15,6 +15,8 @@ export default function NotesBrowser() {
     const [selectedSem, setSelectedSem] = useState<any>(null);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [selectedSub, setSelectedSub] = useState<any>(null);
+    const [folders, setFolders] = useState<any[]>([]);
+    const [selectedFolder, setSelectedFolder] = useState<any>(null);
     const [notes, setNotes] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -34,16 +36,21 @@ export default function NotesBrowser() {
     }
 
     async function handleDeptClick(dept: any) {
+        console.log("NotesBrowser: Clicked Department:", dept);
         if (selectedDept?.id === dept.id && !isSearching) return;
 
         setSelectedDept(dept);
         setSelectedBatch(null);
         setSelectedSem(null);
         setSelectedSub(null);
+        setSelectedFolder(null);
         setSearchQuery("");
         setIsSearching(false);
         try {
-            setBatches(await getBatches(dept.id));
+            console.log("NotesBrowser: Fetching batches for Dept ID:", dept.id);
+            const loadedBatches = await getBatches(dept.id);
+            console.log("NotesBrowser: Loaded Batches:", loadedBatches);
+            setBatches(loadedBatches);
         } catch (error) {
             console.error("Failed to load batches", error);
             setBatches([]);
@@ -58,6 +65,7 @@ export default function NotesBrowser() {
         setSelectedBatch(batch);
         setSelectedSem(null);
         setSelectedSub(null);
+        setSelectedFolder(null);
         try {
             setSemesters(await getSemesters(batch.id));
         } catch (error) {
@@ -73,30 +81,52 @@ export default function NotesBrowser() {
         }
         setSelectedSem(sem);
         setSelectedSub(null);
+        setSelectedFolder(null);
         try {
-            setSubjects(await getSubjects(sem.id));
+            const realSubjects = await getSubjects(sem.id);
+            // Append virtual General subject
+            const generalSubject = { id: "general", name: "General Materials" };
+            setSubjects([...realSubjects, generalSubject]);
         } catch (error) {
             console.error("Failed to load subjects", error);
-            setSubjects([]);
+            setSubjects([{ id: "general", name: "General Materials" }]);
         }
     }
 
     async function handleSubClick(sub: any) {
         if (selectedSub?.id === sub.id) {
             setSelectedSub(null);
+            setSelectedFolder(null);
             return;
         }
         setSelectedSub(sub);
+        setSelectedFolder(null);
         setLoading(true);
         try {
-            setNotes(await getNotes(sub.id));
+            const [fetchedNotes, fetchedFolders] = await Promise.all([
+                getNotes(sub.id),
+                getFolders(sub.id)
+            ]);
+            setNotes(fetchedNotes);
+            setFolders(fetchedFolders);
         } catch (error) {
-            console.error("Failed to load notes", error);
+            console.error("Failed to load content", error);
             setNotes([]);
+            setFolders([]);
         } finally {
             setLoading(false);
         }
     }
+
+    // Filter notes based on current view (Folder vs Root)
+    const filteredNotes = notes.filter(n => {
+        if (selectedFolder) {
+            return n.folderId === selectedFolder.id;
+        } else {
+            // Show notes that are NOT in any folder (General Notes)
+            return !n.folderId;
+        }
+    });
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -325,31 +355,92 @@ export default function NotesBrowser() {
                 </>
             )}
 
-            {/* Notes List (Standard Browsing) */}
+            {/* Content View (Folders + Notes) */}
             {!isSearching && selectedSub && (
                 <div className={styles.notesSection}>
-                    <h3 className={styles.notesTitle}>
-                        Notes for {selectedSub.name}
-                    </h3>
-                    {loading ? <p>Loading notes...</p> : notes.length === 0 ? <p>No notes uploaded yet.</p> : (
-                        <div className={styles.notesGrid}>
-                            {notes.map(note => (
-                                <div key={note.id} className={styles.noteCard}>
-                                    <div className={styles.preview}>
-                                        {getPreview(note)}
-                                    </div>
-                                    <div className={styles.noteContent}>
-                                        <h4 className={styles.noteName} title={note.title}>{note.title}</h4>
-                                        <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
-                                        <div className={styles.actions}>
-                                            <a href={note.fileUrl} target="_blank" rel="noopener noreferrer" className={styles.btn} title="View"><Eye size={18} /></a>
-                                            <a href={note.fileUrl} download target="_blank" rel="noopener noreferrer" className={styles.btn} title="Download"><Download size={18} /></a>
-                                            <button onClick={() => handleShare(note.fileUrl)} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
-                                        </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+                        {selectedFolder && (
+                            <button
+                                onClick={() => setSelectedFolder(null)}
+                                className="btn btn-outline"
+                                style={{ padding: "0.5rem", borderRadius: "50%", border: "none" }}
+                            >
+                                <ArrowLeft size={20} />
+                            </button>
+                        )}
+                        <h3 className={styles.notesTitle} style={{ margin: 0 }}>
+                            {selectedFolder ? selectedFolder.name : `Materials for ${selectedSub.name}`}
+                        </h3>
+                    </div>
+
+                    {loading ? <p>Loading content...</p> : (
+                        <>
+                            {/* Folders Grid (Only show at root level) */}
+                            {!selectedFolder && folders.length > 0 && (
+                                <div style={{ marginBottom: "2rem" }}>
+                                    <h4 style={{ fontSize: "1rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Folders</h4>
+                                    <div className={styles.grid} style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
+                                        {folders.map(folder => (
+                                            <div
+                                                key={folder.id}
+                                                className="card"
+                                                onClick={() => setSelectedFolder(folder)}
+                                                style={{
+                                                    cursor: "pointer",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "1rem",
+                                                    padding: "1.5rem",
+                                                    background: "var(--surface)",
+                                                    border: "1px solid var(--border)",
+                                                    transition: "transform 0.2s, box-shadow 0.2s"
+                                                }}
+                                                onMouseEnter={e => {
+                                                    e.currentTarget.style.transform = "translateY(-2px)";
+                                                    e.currentTarget.style.boxShadow = "var(--shadow-md)";
+                                                }}
+                                                onMouseLeave={e => {
+                                                    e.currentTarget.style.transform = "none";
+                                                    e.currentTarget.style.boxShadow = "none";
+                                                }}
+                                            >
+                                                <Folder size={24} className="text-primary" fill="currentColor" fillOpacity={0.2} />
+                                                <span style={{ fontWeight: 600 }}>{folder.name}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            )}
+
+                            {/* Notes Grid */}
+                            <div>
+                                {!selectedFolder && folders.length > 0 && <h4 style={{ fontSize: "1rem", color: "var(--text-muted)", marginBottom: "1rem" }}>General Notes</h4>}
+                                {filteredNotes.length === 0 ? (
+                                    <p className="text-muted" style={{ fontStyle: "italic" }}>
+                                        {selectedFolder ? "This folder is empty." : (folders.length === 0 ? "No materials uploaded yet." : "No general notes.")}
+                                    </p>
+                                ) : (
+                                    <div className={styles.notesGrid}>
+                                        {filteredNotes.map(note => (
+                                            <div key={note.id} className={styles.noteCard}>
+                                                <div className={styles.preview}>
+                                                    {getPreview(note)}
+                                                </div>
+                                                <div className={styles.noteContent}>
+                                                    <h4 className={styles.noteName} title={note.title}>{note.title}</h4>
+                                                    <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
+                                                    <div className={styles.actions}>
+                                                        <a href={note.fileUrl} target="_blank" rel="noopener noreferrer" className={styles.btn} title="View"><Eye size={18} /></a>
+                                                        <a href={note.fileUrl} download target="_blank" rel="noopener noreferrer" className={styles.btn} title="Download"><Download size={18} /></a>
+                                                        <button onClick={() => handleShare(note.fileUrl)} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </>
                     )}
                 </div>
             )}

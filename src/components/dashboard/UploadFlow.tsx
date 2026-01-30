@@ -34,6 +34,9 @@ export default function UploadFlow() {
     const [selectedSub, setSelectedSub] = useState("");
     const [selectedFolder, setSelectedFolder] = useState("");
 
+    // Selection Completeness Check
+    const isSelectionComplete = selectedDept && selectedBatch && selectedSem;
+
     // Folder State
     const [folders, setFolders] = useState<any[]>([]);
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -95,7 +98,11 @@ export default function UploadFlow() {
         loadSubs();
     }, [selectedSem]);
 
-    // Load Folders when Subject changes
+    // Load Folders when Semester changes (Previously Subject) - Now optional?
+    // If we removed Subject selection, we should load folders based on Semester?
+    // Current backend expects subjectId. If selectedSub is empty, folders won't load.
+    // We'll leave this effectively disabled for now unless we update backend to fetch by Semester.
+    // Or we simply check validation.
     useEffect(() => {
         if (!selectedSub) {
             setFolders([]);
@@ -109,10 +116,10 @@ export default function UploadFlow() {
     }, [selectedSub]);
 
     const handleCreateFolder = async () => {
-        if (!newFolderName.trim() || !selectedSub) return;
+        if (!newFolderName.trim()) return; // Removed selectedSub check
         try {
-            await createFolder({
-                subjectId: selectedSub,
+            const ref = await createFolder({
+                subjectId: selectedSub || "general", // Fallback or empty? Schema might require string.
                 semesterId: selectedSem,
                 batchId: selectedBatch,
                 departmentId: selectedDept,
@@ -121,9 +128,16 @@ export default function UploadFlow() {
             });
             setNewFolderName("");
             setIsCreatingFolder(false);
-            // Reload folders
-            const f = await getFolders(selectedSub);
-            setFolders(f);
+
+            // Reload folders and select the new one
+            if (selectedSub) {
+                const f = await getFolders(selectedSub);
+                setFolders(f);
+            }
+            // Auto-select the new folder
+            setSelectedFolder(ref.id);
+            addToast(`Folder '${newFolderName}' created and selected`, "success");
+
         } catch (error) {
             console.error("Failed to create folder", error);
             addToast("Failed to create folder", "error");
@@ -193,7 +207,7 @@ export default function UploadFlow() {
     };
 
     const handleSubmit = async () => {
-        if (!selectedDept || !selectedBatch || !selectedSem || !selectedSub || files.length === 0 || !user) return;
+        if (!selectedDept || !selectedBatch || !selectedSem || files.length === 0 || !user) return; // Removed selectedSub check
 
         setUploading(true);
         const newProgress: any = {};
@@ -225,7 +239,7 @@ export default function UploadFlow() {
                 } else {
                     // Create it
                     const ref = await createFolder({
-                        subjectId: selectedSub,
+                        subjectId: selectedSub || "general",
                         semesterId: selectedSem,
                         batchId: selectedBatch,
                         departmentId: selectedDept,
@@ -268,7 +282,7 @@ export default function UploadFlow() {
                         departmentId: selectedDept,
                         batchId: selectedBatch,
                         semesterId: selectedSem,
-                        subjectId: selectedSub,
+                        subjectId: selectedSub || "general", // Fallback
                         // Use webkitRelativePath for folder structure if available
                         folderId: targetFolderId,
                         title: file.name.replace(/\.[^/.]+$/, ""),
@@ -313,6 +327,8 @@ export default function UploadFlow() {
             {/* 1. Structure Selection */}
             <div className={styles.section}>
                 <h3 className={styles.stepTitle}>1. Select Structure</h3>
+                {departments.length === 0 && <p className="text-danger">No departments found. Please create structure in Manage page first.</p>}
+
                 <div className={styles.grid}>
                     <select
                         value={selectedDept}
@@ -343,105 +359,137 @@ export default function UploadFlow() {
                         {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
 
-                    <select
-                        value={selectedSub}
-                        onChange={(e) => setSelectedSub(e.target.value)}
-                        className={styles.select}
-                        disabled={!selectedSem}
-                    >
-                        <option value="">Select Subject</option>
-                        {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
+                    {/* Subject Selection Removed as requested */}
                 </div>
-
-                {/* Folder Selection (Flexible/Optional) */}
-                {selectedSub && (
-                    <div style={{ marginTop: "1rem", display: "flex", alignItems: "center", gap: "1rem" }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.5rem" }}>
-                                Select Folder (Optional)
-                            </label>
-                            <select
-                                value={selectedFolder}
-                                onChange={(e) => setSelectedFolder(e.target.value)}
-                                className={styles.select}
-                                style={{ width: "100%" }}
-                            >
-                                <option value="">General Notes (No Folder)</option>
-                                {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                            </select>
-                        </div>
-
-                        <div style={{ display: "flex", alignItems: "flex-end" }}>
-                            {!isCreatingFolder ? (
-                                <button
-                                    onClick={() => setIsCreatingFolder(true)}
-                                    className="btn btn-outline"
-                                    style={{ height: "42px", display: "flex", alignItems: "center", gap: "0.5rem" }}
-                                >
-                                    <FolderPlus size={18} /> Create Folder
-                                </button>
-                            ) : (
-                                <div style={{ display: "flex", gap: "0.5rem" }}>
-                                    <input
-                                        type="text"
-                                        placeholder="Folder Name"
-                                        value={newFolderName}
-                                        onChange={(e) => setNewFolderName(e.target.value)}
-                                        className={styles.input}
-                                        style={{ height: "42px", padding: "0 0.75rem", border: "1px solid #e5e7eb", borderRadius: "0.5rem" }}
-                                    />
-                                    <button onClick={handleCreateFolder} className="btn btn-primary" style={{ height: "42px" }}>Save</button>
-                                    <button onClick={() => setIsCreatingFolder(false)} className="btn btn-ghost" style={{ height: "42px" }}>Cancel</button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
             </div>
 
-            {/* 2. Upload Zone */}
-            <div className={styles.section}>
-                <h3 className={styles.stepTitle}>2. Upload Files</h3>
+            {/* 2. Upload Actions (Always visible, disabled if not selected) */}
+            <div className={styles.section} style={{
+                opacity: isSelectionComplete ? 1 : 0.5,
+                pointerEvents: isSelectionComplete ? "auto" : "none",
+                transition: "opacity 0.3s"
+            }}>
+                <h3 className={styles.stepTitle}>2. Choose Upload Method (Optional)</h3>
+                {!isSelectionComplete && <p style={{ color: "var(--primary)", fontWeight: 500, marginBottom: "1rem" }}>Please select Department, Batch, and Semester to enable upload options.</p>}
 
+                {/* Folder Selection / Creation Area - Integrated nicely */}
+                <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "var(--surface)", borderRadius: "8px", border: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                        <label style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-main)" }}>Target Folder (Optional)</label>
+                        {!isCreatingFolder && (
+                            <button
+                                onClick={() => setIsCreatingFolder(true)}
+                                className="btn-text"
+                                style={{ color: "var(--primary)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", background: "none", border: "none" }}
+                            >
+                                + Create New Folder
+                            </button>
+                        )}
+                    </div>
+
+                    {isCreatingFolder ? (
+                        <div style={{ display: "flex", gap: "0.5rem", animation: "slideDown 0.2s" }}>
+                            <input
+                                type="text"
+                                placeholder="Folder Name (e.g. Module 1)"
+                                value={newFolderName}
+                                onChange={(e) => setNewFolderName(e.target.value)}
+                                className={styles.input}
+                                style={{ flex: 1 }}
+                            />
+                            <button onClick={handleCreateFolder} className="btn btn-primary" style={{ padding: "0 1rem" }}>Save</button>
+                            <button onClick={() => setIsCreatingFolder(false)} className="btn btn-ghost">Cancel</button>
+                        </div>
+                    ) : (
+                        <select
+                            value={selectedFolder}
+                            onChange={(e) => setSelectedFolder(e.target.value)}
+                            className={styles.select}
+                            style={{ width: "100%", background: "var(--surface)", color: "var(--text-main)" }}
+                        >
+                            <option value="">General Notes (Root)</option>
+                            {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                        </select>
+                    )}
+                    <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
+                        {selectedFolder
+                            ? "Files will be uploaded into this folder."
+                            : "Files will be uploaded to 'General Notes' unless they are inside a folder you drag-and-drop."}
+                    </p>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
+                    {/* Option A: Upload Files */}
+                    <div
+                        className={styles.uploadOption}
+                        onClick={() => document.getElementById("fileInput")?.click()}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = "#cbd5e1"}
+                    >
+                        <File size={40} color="var(--primary)" style={{ marginBottom: "1rem" }} />
+                        <h4 style={{ fontWeight: 600, marginBottom: "0.5rem", color: "var(--text-main)" }}>Upload Files</h4>
+                        <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>PDFs, Videos, Images</p>
+                        <button className="btn btn-primary" style={{ pointerEvents: "none" }}>Select Files</button>
+                    </div>
+
+                    {/* Option B: Upload Folder */}
+                    <div
+                        className={styles.uploadOption}
+                        onClick={() => document.getElementById("folderInput")?.click()}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = "#cbd5e1"}
+                    >
+                        <FolderPlus size={40} color="#a855f7" style={{ marginBottom: "1rem" }} />
+                        <h4 style={{ fontWeight: 600, marginBottom: "0.5rem", color: "var(--text-main)" }}>Upload Entire Folder</h4>
+                        <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Keeps nested structure</p>
+                        <button className="btn btn-outline" style={{ pointerEvents: "none" }}>Select Folder</button>
+                    </div>
+                </div>
+
+                {/* Hidden Inputs */}
+                <input
+                    type="file"
+                    id="fileInput"
+                    hidden
+                    multiple
+                    onChange={handleFileSelect}
+                />
+                <input
+                    type="file"
+                    id="folderInput"
+                    hidden
+                    multiple
+                    {...{ webkitdirectory: "", directory: "" } as any}
+                    onChange={handleFolderSelect}
+                />
+
+                {/* Drag Drop Fallback / Information */}
                 <div
                     className={styles.dropzone}
-                    onDragOver={(e) => e.preventDefault()}
+                    onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--primary)"; }}
+                    onDragLeave={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = "var(--border)"; }}
                     onDrop={handleDrop}
-                    onClick={() => document.getElementById("fileInput")?.click()}
+                    style={{ padding: "3rem", background: "var(--surface)", border: "2px dashed var(--border)", borderRadius: "12px", textAlign: "center" }}
                 >
-                    <p className={styles.dropText}>
-                        Drag & drop files here <span onClick={(e) => { e.stopPropagation(); document.getElementById("fileInput")?.click() }}>upload file</span> or <span onClick={(e) => { e.stopPropagation(); document.getElementById("folderInput")?.click() }}>upload folder</span> (up to 50MB)
-                    </p>
-                    <input
-                        type="file"
-                        id="fileInput"
-                        hidden
-                        multiple // Enable multiple files
-                        onChange={handleFileSelect}
-                    />
-                    <input
-                        type="file"
-                        id="folderInput"
-                        hidden
-                        multiple
-                        {...{ webkitdirectory: "", directory: "" } as any}
-                        onChange={handleFolderSelect}
-                    />
+                    <p style={{ fontWeight: 500, color: "var(--text-muted)" }}>Or visually drag & drop files or folders here</p>
                 </div>
 
                 {/* File List */}
                 {files.length > 0 && (
                     <div style={{ marginTop: "1.5rem", display: "grid", gap: "0.75rem" }}>
+                        <h4 style={{ fontSize: "1rem", fontWeight: 600 }}>Ready to Upload ({files.length})</h4>
                         {files.map((f, i) => (
                             <div key={i} style={{
                                 display: "flex", alignItems: "center", gap: "1rem",
-                                background: "#f9fafb", padding: "0.75rem", borderRadius: "8px", border: "1px solid #e5e7eb"
+                                background: "var(--surface)", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--border)",
+                                boxShadow: "var(--shadow-sm)"
                             }}>
                                 {getFileIcon(f.type)}
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <p style={{ fontWeight: 500, fontSize: "0.9rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</p>
-                                    <p style={{ fontSize: "0.8rem", color: "#6b7280" }}>{(f.size / 1024 / 1024).toFixed(2)} MB</p>
+                                    <p style={{ fontWeight: 500, fontSize: "0.9rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "var(--text-main)" }}>
+                                        {f.webkitRelativePath || f.name}
+                                    </p>
+                                    <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{(f.size / 1024 / 1024).toFixed(2)} MB</p>
                                 </div>
 
                                 {progress[f.name] === 'uploading' && <span style={{ fontSize: "0.8rem", color: "var(--primary)" }}>Uploading...</span>}
@@ -460,17 +508,18 @@ export default function UploadFlow() {
                         ))}
                     </div>
                 )}
-            </div>
 
-            {/* 3. Submit */}
-            <div className={styles.actions}>
-                <button
-                    className={`btn btn-primary ${styles.submitBtn}`}
-                    onClick={handleSubmit}
-                    disabled={files.length === 0 || !selectedSub || uploading}
-                >
-                    {uploading ? 'Uploading Files...' : `✅ Upload ${files.length > 0 ? files.length : ''} Files`}
-                </button>
+                {/* Submit Button */}
+                <div className={styles.actions} style={{ marginTop: "2rem" }}>
+                    <button
+                        className={`btn btn-primary ${styles.submitBtn}`}
+                        onClick={handleSubmit}
+                        disabled={files.length === 0 || uploading}
+                        style={{ width: "100%", padding: "1rem", fontSize: "1.1rem", fontWeight: 600 }}
+                    >
+                        {uploading ? 'Uploading Files...' : `Start Upload`}
+                    </button>
+                </div>
             </div>
         </div >
     );
