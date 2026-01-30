@@ -161,7 +161,7 @@ export default function NotesBrowser() {
         // Reset downstream
         const newParams = new URLSearchParams();
         newParams.set("dept", dept.id);
-        router.push(`${pathname}?${newParams.toString()}`);
+        router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
 
         setSearchQuery("");
         setIsSearching(false);
