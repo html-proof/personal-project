@@ -133,6 +133,19 @@ export default function NotesBrowser() {
         syncState();
     }, [searchParams, departments]);
 
+    // Auto-scroll to content when Subject or General Materials is selected
+    useEffect(() => {
+        if (selectedSub && !loading) {
+            const element = document.getElementById("notes-content");
+            if (element) {
+                // Small timeout to ensure DOM render
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 100);
+            }
+        }
+    }, [selectedSub, loading]);
+
 
     async function loadDepartments() {
         const data = await getDepartments();
@@ -432,7 +445,7 @@ export default function NotesBrowser() {
 
             {/* Content View (Folders + Notes) */}
             {!isSearching && selectedSub && (
-                <div className={styles.notesSection}>
+                <div id="notes-content" className={styles.notesSection}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
                         {selectedFolder && (
                             <button
