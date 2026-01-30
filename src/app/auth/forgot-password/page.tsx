@@ -24,21 +24,25 @@ export default function ForgotPasswordPage() {
         }
 
         try {
+            console.log("Checking if email exists:", email);
             // Check if email exists
             const emailExists = await checkEmailExists(email);
+            console.log("Email exists result:", emailExists);
 
             if (!emailExists) {
+                console.log("Email does not exist, showing error");
                 addToast("No account found with this email address.", "error");
                 setLoading(false);
                 return;
             }
 
+            console.log("Email exists, sending password reset");
             // Send password reset email
             await resetPassword(email);
             addToast("Password reset email sent! Check your inbox.", "success");
         } catch (err: any) {
+            console.error("Error in handleReset:", err);
             addToast("Can't reset password. Please try again.", "error");
-            console.error(err);
         } finally {
             setLoading(false);
         }
