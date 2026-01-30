@@ -37,9 +37,7 @@ export default function SignupPage() {
             setSuccess(true);
         } catch (err: any) {
             if (err.message === "ACCESS_DENIED") {
-                const msg = "Access Denied. Authorization required.";
-                setError(msg);
-                addToast(msg, "error");
+                addToast("Can't ACCESS sorry", "error");
             } else if (err.code === 'auth/email-already-in-use') {
                 setError("Email already in use.");
             } else if (err.code === 'auth/weak-password') {

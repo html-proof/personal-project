@@ -27,9 +27,7 @@ export default function LoginPage() {
             router.push("/dashboard");
         } catch (err: any) {
             if (err.message === "ACCESS_DENIED") {
-                const msg = "Access Denied. Authorization required.";
-                setError(msg);
-                addToast(msg, "error");
+                addToast("Can't ACCESS sorry", "error");
             } else {
                 setError("Invalid email or password.");
             }
