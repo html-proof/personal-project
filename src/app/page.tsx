@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import NotesBrowser from "@/components/public/NotesBrowser";
 import DynamicBackground from "@/components/layout/DynamicBackground";
@@ -103,7 +104,9 @@ export default function Home() {
             {/* 3. Main Browser Area */}
             <div id="browse" style={{ padding: "2rem 1rem 4rem", background: "linear-gradient(to bottom, rgba(0,0,0,0.02) 0%, var(--bg-gradient-end) 100%)" }}>
                 <div className="container">
-                    <NotesBrowser />
+                    <Suspense fallback={<div className="text-center p-4">Loading browser...</div>}>
+                        <NotesBrowser />
+                    </Suspense>
                 </div>
             </div>
 

@@ -1,12 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { getDepartments, getBatches, getSemesters, getSubjects, getNotes, searchNotes, getFolders } from "@/lib/firebase/firestore";
 import { ChevronRight, File, Film, Image as ImageIcon, Download, Eye, Share2, Search, X, Folder, ArrowLeft } from "lucide-react";
 import FilePreviewModal from "./FilePreviewModal";
 import styles from "./NotesBrowser.module.css";
 
 export default function NotesBrowser() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
     const [departments, setDepartments] = useState<any[]>([]);
     const [selectedDept, setSelectedDept] = useState<any>(null);
     const [batches, setBatches] = useState<any[]>([]);
@@ -25,98 +30,165 @@ export default function NotesBrowser() {
     const [isSearching, setIsSearching] = useState(false);
     const [previewNote, setPreviewNote] = useState<any>(null);
 
+    // Initial Load
     useEffect(() => {
         loadDepartments();
     }, []);
 
+    // Sync State with URL Params
+    useEffect(() => {
+        const syncState = async () => {
+            if (departments.length === 0) return;
+
+            const deptId = searchParams.get("dept");
+            const batchId = searchParams.get("batch");
+            const semId = searchParams.get("sem");
+            const subId = searchParams.get("sub");
+            const folderId = searchParams.get("folder");
+
+            // Sync Dept
+            if (deptId && selectedDept?.id !== deptId) {
+                const dept = departments.find(d => d.id === deptId);
+                if (dept) {
+                    setSelectedDept(dept);
+                    const b = await getBatches(dept.id);
+                    setBatches(b);
+                }
+            } else if (!deptId && selectedDept) {
+                // Reset if URL cleared
+                setSelectedDept(null);
+                setBatches([]);
+                return;
+            }
+
+            // Sync Batch
+            if (batchId && selectedBatch?.id !== batchId) {
+                const batch = await getBatches(deptId!).then(res => res.find(b => b.id === batchId)); // Re-fetch to be safe or find in current batches if we could trust order
+                if (batch) {
+                    setSelectedBatch(batch);
+                    const s = await getSemesters(batch.id);
+                    setSemesters(s);
+                }
+            } else if (!batchId && selectedBatch) {
+                setSelectedBatch(null);
+                setSemesters([]);
+                return;
+            }
+
+            // Sync Semester
+            if (semId && selectedSem?.id !== semId) {
+                const sem = await getSemesters(batchId!).then(res => res.find(s => s.id === semId));
+                if (sem) {
+                    setSelectedSem(sem);
+                    const realSubjects = await getSubjects(sem.id);
+                    const generalSubject = { id: "general", name: "General Materials" };
+                    setSubjects([...realSubjects, generalSubject]);
+                }
+            } else if (!semId && selectedSem) {
+                setSelectedSem(null);
+                setSubjects([]);
+                return;
+            }
+
+            // Sync Subject (Load Content)
+            if (subId && selectedSub?.id !== subId) {
+                // If "general", we fabricate the object since it won't be in DB
+                let sub = subId === "general"
+                    ? { id: "general", name: "General Materials" }
+                    : await getSubjects(semId!).then(res => res.find(s => s.id === subId));
+
+                if (sub) {
+                    setSelectedSub(sub);
+                    setLoading(true);
+                    try {
+                        const [fetchedNotes, fetchedFolders] = await Promise.all([
+                            getNotes(sub.id),
+                            getFolders(sub.id)
+                        ]);
+                        setNotes(fetchedNotes);
+                        setFolders(fetchedFolders);
+                    } catch (error) {
+                        console.error("Failed to load content", error);
+                    } finally {
+                        setLoading(false);
+                    }
+                }
+            } else if (!subId && selectedSub) {
+                setSelectedSub(null);
+                setNotes([]);
+                setFolders([]);
+                return;
+            }
+
+            // Sync Folder
+            if (folderId && selectedFolder?.id !== folderId) {
+                const folder = await getFolders(subId!).then(res => res.find(f => f.id === folderId));
+                if (folder) setSelectedFolder(folder);
+            } else if (!folderId && selectedFolder) {
+                setSelectedFolder(null);
+            }
+
+        };
+
+        syncState();
+    }, [searchParams, departments]);
+
+
     async function loadDepartments() {
         const data = await getDepartments();
         setDepartments(data);
-        if (data.length > 0) {
-            handleDeptClick(data[0]);
+        // Default select if no URL param
+        if (data.length > 0 && !searchParams.get("dept")) {
+            updateUrl({ dept: data[0].id });
         }
     }
 
-    async function handleDeptClick(dept: any) {
-        console.log("NotesBrowser: Clicked Department:", dept);
-        if (selectedDept?.id === dept.id && !isSearching) return;
+    // Helper to update URL
+    const updateUrl = (params: Record<string, string | null>) => {
+        const newParams = new URLSearchParams(searchParams.toString());
+        Object.entries(params).forEach(([key, value]) => {
+            if (value === null) {
+                newParams.delete(key);
+            } else {
+                newParams.set(key, value);
+            }
+        });
+        router.push(`${pathname}?${newParams.toString()}`);
+    };
 
-        setSelectedDept(dept);
-        setSelectedBatch(null);
-        setSelectedSem(null);
-        setSelectedSub(null);
-        setSelectedFolder(null);
+    function handleDeptClick(dept: any) {
+        if (selectedDept?.id === dept.id && !isSearching) return;
+        // Reset downstream
+        const newParams = new URLSearchParams();
+        newParams.set("dept", dept.id);
+        router.push(`${pathname}?${newParams.toString()}`);
+
         setSearchQuery("");
         setIsSearching(false);
-        try {
-            console.log("NotesBrowser: Fetching batches for Dept ID:", dept.id);
-            const loadedBatches = await getBatches(dept.id);
-            console.log("NotesBrowser: Loaded Batches:", loadedBatches);
-            setBatches(loadedBatches);
-        } catch (error) {
-            console.error("Failed to load batches", error);
-            setBatches([]);
-        }
     }
 
-    async function handleBatchClick(batch: any) {
+    function handleBatchClick(batch: any) {
         if (selectedBatch?.id === batch.id) {
-            setSelectedBatch(null); setSelectedSem(null); setSelectedSub(null);
+            updateUrl({ batch: null, sem: null, sub: null, folder: null });
             return;
         }
-        setSelectedBatch(batch);
-        setSelectedSem(null);
-        setSelectedSub(null);
-        setSelectedFolder(null);
-        try {
-            setSemesters(await getSemesters(batch.id));
-        } catch (error) {
-            console.error("Failed to load semesters", error);
-            setSemesters([]);
-        }
+        updateUrl({ batch: batch.id, sem: null, sub: null, folder: null });
     }
 
-    async function handleSemClick(sem: any) {
+    function handleSemClick(sem: any) {
         if (selectedSem?.id === sem.id) {
-            setSelectedSem(null); setSelectedSub(null);
+            updateUrl({ sem: null, sub: null, folder: null });
             return;
         }
-        setSelectedSem(sem);
-        setSelectedSub(null);
-        setSelectedFolder(null);
-        try {
-            const realSubjects = await getSubjects(sem.id);
-            const generalSubject = { id: "general", name: "General Materials" };
-            setSubjects([...realSubjects, generalSubject]);
-        } catch (error) {
-            console.error("Failed to load subjects", error);
-            setSubjects([{ id: "general", name: "General Materials" }]);
-        }
+        updateUrl({ sem: sem.id, sub: null, folder: null });
     }
 
-    async function handleSubClick(sub: any) {
+    function handleSubClick(sub: any) {
         if (selectedSub?.id === sub.id) {
-            setSelectedSub(null);
-            setSelectedFolder(null);
+            updateUrl({ sub: null, folder: null });
             return;
         }
-        setSelectedSub(sub);
-        setSelectedFolder(null);
-        setLoading(true);
-        try {
-            const [fetchedNotes, fetchedFolders] = await Promise.all([
-                getNotes(sub.id),
-                getFolders(sub.id)
-            ]);
-            setNotes(fetchedNotes);
-            setFolders(fetchedFolders);
-        } catch (error) {
-            console.error("Failed to load content", error);
-            setNotes([]);
-            setFolders([]);
-        } finally {
-            setLoading(false);
-        }
+        updateUrl({ sub: sub.id, folder: null });
     }
 
     const filteredNotes = notes.filter(n => {
@@ -364,7 +436,7 @@ export default function NotesBrowser() {
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
                         {selectedFolder && (
                             <button
-                                onClick={() => setSelectedFolder(null)}
+                                onClick={() => updateUrl({ folder: null })}
                                 className="btn btn-outline"
                                 style={{ padding: "0.5rem", borderRadius: "50%", border: "none" }}
                             >
@@ -387,7 +459,7 @@ export default function NotesBrowser() {
                                             <div
                                                 key={folder.id}
                                                 className="card"
-                                                onClick={() => setSelectedFolder(folder)}
+                                                onClick={() => updateUrl({ folder: folder.id })}
                                                 style={{
                                                     cursor: "pointer",
                                                     display: "flex",
