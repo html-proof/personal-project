@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { resetPassword } from "@/lib/firebase/auth";
+import { resetPassword, checkEmailExists } from "@/lib/firebase/auth";
 import Link from "next/link";
 import { Mail, ArrowLeft } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
@@ -24,10 +24,20 @@ export default function ForgotPasswordPage() {
         }
 
         try {
+            // Check if email exists
+            const emailExists = await checkEmailExists(email);
+
+            if (!emailExists) {
+                addToast("No account found with this email address.", "error");
+                setLoading(false);
+                return;
+            }
+
+            // Send password reset email
             await resetPassword(email);
             addToast("Password reset email sent! Check your inbox.", "success");
         } catch (err: any) {
-            addToast("Can't reset password. Please check the email and try again.", "error");
+            addToast("Can't reset password. Please try again.", "error");
             console.error(err);
         } finally {
             setLoading(false);

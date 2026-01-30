@@ -7,7 +7,8 @@ import {
     updateProfile,
     User,
     sendPasswordResetEmail,
-    sendEmailVerification
+    sendEmailVerification,
+    fetchSignInMethodsForEmail
 } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { isAllowedEmail } from "../config";
@@ -58,6 +59,17 @@ export const signUp = async (name: string, email: string, pass: string) => {
 
 // Sign Out
 export const signOut = () => firebaseSignOut(auth);
+
+// Check if email exists
+export const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+        return methods.length > 0;
+    } catch (error) {
+        console.error("Error checking email:", error);
+        return false;
+    }
+};
 
 // Password Reset
 export const resetPassword = (email: string) =>
