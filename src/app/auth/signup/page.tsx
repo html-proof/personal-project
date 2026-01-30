@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signUp } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, Mail, UserPlus, User, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { Lock, Mail, UserPlus, User, Eye, EyeOff } from "lucide-react";
 import { CONFIG, validatePassword } from "@/lib/config";
 import { useToast } from "@/context/ToastContext";
 
@@ -13,7 +13,6 @@ export default function SignupPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const router = useRouter();
@@ -22,12 +21,11 @@ export default function SignupPage() {
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError("");
 
         // Validate password strength
         const passwordValidation = validatePassword(password);
         if (!passwordValidation.valid) {
-            setError(passwordValidation.message || "Invalid password");
+            addToast(passwordValidation.message || "Invalid password", "error");
             setLoading(false);
             return;
         }
@@ -39,11 +37,11 @@ export default function SignupPage() {
             if (err.message === "ACCESS_DENIED") {
                 addToast("Can't ACCESS sorry", "error");
             } else if (err.code === 'auth/email-already-in-use') {
-                setError("Email already in use.");
+                addToast("Email already in use.", "error");
             } else if (err.code === 'auth/weak-password') {
-                setError("Password should be at least 6 characters.");
+                addToast("Password should be at least 6 characters.", "error");
             } else {
-                setError("Failed to create account. Try again.");
+                addToast("Failed to create account. Try again.", "error");
             }
         } finally {
             setLoading(false);
@@ -81,23 +79,6 @@ export default function SignupPage() {
                     CEP Teacher Signup
                 </h2>
 
-                {error && (
-                    <div style={{
-                        background: "#fee2e2",
-                        color: "#991b1b",
-                        padding: "0.75rem",
-                        borderRadius: "0.5rem",
-                        marginBottom: "1rem",
-                        fontSize: "0.9rem",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        border: "1px solid #f87171"
-                    }}>
-                        <AlertTriangle size={18} />
-                        {error}
-                    </div>
-                )}
 
                 <form onSubmit={handleSignup}>
                     <div style={{ marginBottom: "1rem" }}>

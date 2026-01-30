@@ -4,15 +4,13 @@ import { useState } from "react";
 import { signIn } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, Mail, Eye, EyeOff, AlertTriangle } from "lucide-react";
-import { CONFIG } from "@/lib/config";
+import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const { addToast } = useToast();
@@ -20,7 +18,6 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError("");
 
         try {
             await signIn(email, password);
@@ -29,12 +26,12 @@ export default function LoginPage() {
             if (err.message === "ACCESS_DENIED") {
                 addToast("Can't ACCESS sorry", "error");
             } else if (err.message === "EMAIL_NOT_VERIFIED") {
-                setError("Please verify your email before logging in.");
+                // Only show toast, no error box
                 addToast("Email not verified. Please check your inbox.", "error");
-                // Optionally redirect to verify-email page
+                // Redirect to verify-email page
                 setTimeout(() => router.push("/auth/verify-email"), 2000);
             } else {
-                setError("Invalid email or password.");
+                addToast("Invalid email or password.", "error");
             }
         } finally {
             setLoading(false);
@@ -48,23 +45,6 @@ export default function LoginPage() {
                     CEP Teacher Login
                 </h2>
 
-                {error && (
-                    <div style={{
-                        background: "#fee2e2",
-                        color: "#991b1b",
-                        padding: "0.75rem",
-                        borderRadius: "0.5rem",
-                        marginBottom: "1rem",
-                        fontSize: "0.9rem",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        border: "1px solid #f87171"
-                    }}>
-                        <AlertTriangle size={18} />
-                        {error}
-                    </div>
-                )}
 
                 <form onSubmit={handleLogin}>
                     <div style={{ marginBottom: "1rem" }}>

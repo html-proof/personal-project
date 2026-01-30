@@ -3,22 +3,18 @@
 import { useState } from "react";
 import { resetPassword } from "@/lib/firebase/auth";
 import Link from "next/link";
-import { Mail, ArrowLeft, AlertTriangle, CheckCircle } from "lucide-react";
+import { Mail, ArrowLeft } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import { isAllowedEmail } from "@/lib/config";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const { addToast } = useToast();
 
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError("");
-        setMessage("");
 
         // Validate email domain
         if (!isAllowedEmail(email)) {
@@ -29,13 +25,9 @@ export default function ForgotPasswordPage() {
 
         try {
             await resetPassword(email);
-            const msg = "Password reset email sent! Check your inbox.";
-            setMessage(msg);
-            addToast(msg, "success");
+            addToast("Password reset email sent! Check your inbox.", "success");
         } catch (err: any) {
-            const msg = "Can't reset password. Please check the email and try again.";
-            setError(msg);
-            addToast(msg, "error");
+            addToast("Can't reset password. Please check the email and try again.", "error");
             console.error(err);
         } finally {
             setLoading(false);
@@ -55,42 +47,6 @@ export default function ForgotPasswordPage() {
                 <p style={{ marginBottom: "1.5rem", color: "var(--text-muted)", fontSize: "0.95rem" }}>
                     Enter your email address and we'll send you a link to reset your password.
                 </p>
-
-                {message && (
-                    <div style={{
-                        background: "#dcfce7",
-                        color: "#166534",
-                        padding: "0.75rem",
-                        borderRadius: "0.5rem",
-                        marginBottom: "1rem",
-                        fontSize: "0.9rem",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        border: "1px solid #bbf7d0"
-                    }}>
-                        <CheckCircle size={18} />
-                        {message}
-                    </div>
-                )}
-
-                {error && (
-                    <div style={{
-                        background: "#fee2e2",
-                        color: "#991b1b",
-                        padding: "0.75rem",
-                        borderRadius: "0.5rem",
-                        marginBottom: "1rem",
-                        fontSize: "0.9rem",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        border: "1px solid #f87171"
-                    }}>
-                        <AlertTriangle size={18} />
-                        {error}
-                    </div>
-                )}
 
                 <form onSubmit={handleReset}>
                     <div style={{ marginBottom: "1.5rem" }}>
