@@ -153,7 +153,7 @@ export default function NotesBrowser() {
                 newParams.set(key, value);
             }
         });
-        router.push(`${pathname}?${newParams.toString()}`);
+        router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
     };
 
     function handleDeptClick(dept: any) {
