@@ -6,7 +6,6 @@ import { ChevronRight, File, Film, Image as ImageIcon, Download, Eye, Share2, Se
 import styles from "./NotesBrowser.module.css";
 
 export default function NotesBrowser() {
-    // ... State ... (Same as before)
     const [departments, setDepartments] = useState<any[]>([]);
     const [selectedDept, setSelectedDept] = useState<any>(null);
     const [batches, setBatches] = useState<any[]>([]);
@@ -84,7 +83,6 @@ export default function NotesBrowser() {
         setSelectedFolder(null);
         try {
             const realSubjects = await getSubjects(sem.id);
-            // Append virtual General subject
             const generalSubject = { id: "general", name: "General Materials" };
             setSubjects([...realSubjects, generalSubject]);
         } catch (error) {
@@ -118,12 +116,10 @@ export default function NotesBrowser() {
         }
     }
 
-    // Filter notes based on current view (Folder vs Root)
     const filteredNotes = notes.filter(n => {
         if (selectedFolder) {
             return n.folderId === selectedFolder.id;
         } else {
-            // Show notes that are NOT in any folder (General Notes)
             return !n.folderId;
         }
     });
@@ -150,7 +146,6 @@ export default function NotesBrowser() {
         setSearchResults([]);
     };
 
-    // ... Methods (handleShare, getPreview) ...
     const handleShare = async (url: string) => {
         try {
             await navigator.clipboard.writeText(url);

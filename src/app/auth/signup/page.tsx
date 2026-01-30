@@ -22,7 +22,6 @@ export default function SignupPage() {
         e.preventDefault();
         setLoading(true);
 
-        // Validate password strength
         const passwordValidation = validatePassword(password);
         if (!passwordValidation.valid) {
             addToast(passwordValidation.message || "Invalid password", "error");

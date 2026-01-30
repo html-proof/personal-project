@@ -19,14 +19,12 @@ export default function DashboardPage() {
                 router.push("/auth/login");
             } else if (!user.emailVerified) {
                 router.push("/auth/verify-email");
-                // Normal redirect check is done
             }
         }
     }, [user, loading, router]);
 
     if (loading) return <div className="container" style={{ textAlign: "center", marginTop: "4rem" }}>Loading dashboard...</div>;
-    if (!user) return null; // Redirecting
-
+    if (!user) return null;
     return (
         <div className="container">
             <header style={{ marginBottom: "2rem", display: "flex", justifyContent: "space-between", alignItems: "end" }}>

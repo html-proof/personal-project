@@ -26,9 +26,7 @@ export default function LoginPage() {
             if (err.message === "ACCESS_DENIED") {
                 addToast("Can't ACCESS sorry", "error");
             } else if (err.message === "EMAIL_NOT_VERIFIED") {
-                // Only show toast, no error box
                 addToast("Email not verified. Please check your inbox.", "error");
-                // Redirect to verify-email page
                 setTimeout(() => router.push("/auth/verify-email"), 2000);
             } else {
                 addToast("Invalid email or password.", "error");

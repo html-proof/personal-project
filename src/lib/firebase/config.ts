@@ -12,7 +12,6 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
 import { getDatabase } from "firebase/database";
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
