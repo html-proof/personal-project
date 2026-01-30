@@ -4,8 +4,9 @@ import { useState } from "react";
 import { signUp } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, Mail, UserPlus, User, Eye, EyeOff } from "lucide-react";
+import { Lock, Mail, UserPlus, User, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { CONFIG, validatePassword } from "@/lib/config";
+import { useToast } from "@/context/ToastContext";
 
 export default function SignupPage() {
     const [name, setName] = useState("");
@@ -16,6 +17,7 @@ export default function SignupPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const router = useRouter();
+    const { addToast } = useToast();
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,7 +37,9 @@ export default function SignupPage() {
             setSuccess(true);
         } catch (err: any) {
             if (err.message === "ACCESS_DENIED") {
-                setError("Access Denied. You are not authorized to access this application.");
+                const msg = "Access Denied. Authorization required.";
+                setError(msg);
+                addToast(msg, "error");
             } else if (err.code === 'auth/email-already-in-use') {
                 setError("Email already in use.");
             } else if (err.code === 'auth/weak-password') {
@@ -86,8 +90,13 @@ export default function SignupPage() {
                         padding: "0.75rem",
                         borderRadius: "0.5rem",
                         marginBottom: "1rem",
-                        fontSize: "0.9rem"
+                        fontSize: "0.9rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        border: "1px solid #f87171"
                     }}>
+                        <AlertTriangle size={18} />
                         {error}
                     </div>
                 )}

@@ -4,8 +4,9 @@ import { useState } from "react";
 import { signIn } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, Mail, Eye, EyeOff } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { CONFIG } from "@/lib/config";
+import { useToast } from "@/context/ToastContext";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { addToast } = useToast();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,7 +27,9 @@ export default function LoginPage() {
             router.push("/dashboard");
         } catch (err: any) {
             if (err.message === "ACCESS_DENIED") {
-                setError("Access Denied. You are not authorized to access this application.");
+                const msg = "Access Denied. Authorization required.";
+                setError(msg);
+                addToast(msg, "error");
             } else {
                 setError("Invalid email or password.");
             }
@@ -48,8 +52,13 @@ export default function LoginPage() {
                         padding: "0.75rem",
                         borderRadius: "0.5rem",
                         marginBottom: "1rem",
-                        fontSize: "0.9rem"
+                        fontSize: "0.9rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        border: "1px solid #f87171"
                     }}>
+                        <AlertTriangle size={18} />
                         {error}
                     </div>
                 )}
