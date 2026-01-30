@@ -100,7 +100,7 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "2rem",
+                    padding: "0.5rem",
                     overflow: "hidden"
                 }}
                 onClick={onClose}
@@ -113,7 +113,7 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        maxWidth: isPdf ? "1000px" : "auto"
+                        maxWidth: "100%",
                     }}
                 >
                     {isImage && (
