@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { resetPassword } from "@/lib/firebase/auth";
 import Link from "next/link";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, AlertTriangle, CheckCircle } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
+import { isAllowedEmail } from "@/lib/config";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const { addToast } = useToast();
 
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -17,11 +20,24 @@ export default function ForgotPasswordPage() {
         setError("");
         setMessage("");
 
+        // Validate email domain
+        if (!isAllowedEmail(email)) {
+            const msg = "Invalid email domain. Please use your institutional email.";
+            setError(msg);
+            addToast(msg, "error");
+            setLoading(false);
+            return;
+        }
+
         try {
             await resetPassword(email);
-            setMessage("Password reset email sent! Check your inbox.");
+            const msg = "Password reset email sent! Check your inbox.";
+            setMessage(msg);
+            addToast(msg, "success");
         } catch (err: any) {
-            setError("Failed to send reset email. Check if the address is correct.");
+            const msg = "Can't reset password. Please check the email and try again.";
+            setError(msg);
+            addToast(msg, "error");
             console.error(err);
         } finally {
             setLoading(false);
@@ -43,13 +59,37 @@ export default function ForgotPasswordPage() {
                 </p>
 
                 {message && (
-                    <div style={{ background: "#dcfce7", color: "#166534", padding: "0.75rem", borderRadius: "0.5rem", marginBottom: "1rem", fontSize: "0.9rem" }}>
+                    <div style={{
+                        background: "#dcfce7",
+                        color: "#166534",
+                        padding: "0.75rem",
+                        borderRadius: "0.5rem",
+                        marginBottom: "1rem",
+                        fontSize: "0.9rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        border: "1px solid #bbf7d0"
+                    }}>
+                        <CheckCircle size={18} />
                         {message}
                     </div>
                 )}
 
                 {error && (
-                    <div style={{ background: "#fee2e2", color: "#991b1b", padding: "0.75rem", borderRadius: "0.5rem", marginBottom: "1rem", fontSize: "0.9rem" }}>
+                    <div style={{
+                        background: "#fee2e2",
+                        color: "#991b1b",
+                        padding: "0.75rem",
+                        borderRadius: "0.5rem",
+                        marginBottom: "1rem",
+                        fontSize: "0.9rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        border: "1px solid #f87171"
+                    }}>
+                        <AlertTriangle size={18} />
                         {error}
                     </div>
                 )}
