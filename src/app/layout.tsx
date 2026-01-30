@@ -75,17 +75,7 @@ export default function RootLayout({
                 </ThemeProvider>
 
                 {/* Register Service Worker */}
-                <Script id="register-sw" strategy="afterInteractive">
-                    {`
-                        if ('serviceWorker' in navigator) {
-                            window.addEventListener('load', () => {
-                                navigator.serviceWorker.register('/sw.js')
-                                    .then(reg => console.log('SW registered'))
-                                    .catch(err => console.log('SW registration failed'));
-                            });
-                        }
-                    `}
-                </Script>
+
             </body>
         </html>
     );
