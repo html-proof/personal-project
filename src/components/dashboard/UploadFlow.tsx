@@ -9,13 +9,16 @@ import {
     getSubjects,
     getFolders,
     createFolder,
-    createNote
+    createNote,
+    getNotes,
+    moveNotesBulk
 } from "@/lib/firebase/firestore";
 import { FolderPlus, Folder } from "lucide-react";
 import { uploadFile } from "@/lib/supabase/storage";
 import { useAuth } from "@/lib/firebase/auth";
 import { useToast } from "@/context/ToastContext";
 import { CONFIG, isAllowedFileType, sanitizeInput } from "@/lib/config";
+import CreateFolderModal from "./CreateFolderModal";
 import styles from "./UploadFlow.module.css";
 
 export default function UploadFlow() {
@@ -37,8 +40,12 @@ export default function UploadFlow() {
     const isSelectionComplete = selectedDept && selectedBatch && selectedSem;
 
     const [folders, setFolders] = useState<any[]>([]);
-    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
-    const [newFolderName, setNewFolderName] = useState("");
+    const [notes, setNotes] = useState<any[]>([]);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    // Derived state for the modal
+    const currentSubjectName = subjects.find(s => s.id === selectedSub)?.name || "Subject";
+    const availableOrphanFiles = notes.filter(n => !n.folderId).map(n => ({ id: n.id, title: n.title }));
 
     const [files, setFiles] = useState<File[]>([]);
     const [uploading, setUploading] = useState(false);
@@ -94,35 +101,51 @@ export default function UploadFlow() {
     useEffect(() => {
         if (!selectedSub) {
             setFolders([]);
+            setNotes([]);
             return;
         }
-        async function loadFolders() {
-            const f = await getFolders(selectedSub);
+        async function loadContent() {
+            const [f, n] = await Promise.all([
+                getFolders(selectedSub),
+                getNotes(selectedSub)
+            ]);
             setFolders(f);
+            setNotes(n);
         }
-        loadFolders();
+        loadContent();
     }, [selectedSub]);
 
-    const handleCreateFolder = async () => {
-        if (!newFolderName.trim()) return;
+    const handleCreateFolder = async (name: string, selectedFileIds: string[], _selectedFolderIds: string[]) => {
         try {
+            // 1. Create the folder
             const ref = await createFolder({
                 subjectId: selectedSub || "general",
                 semesterId: selectedSem,
                 batchId: selectedBatch,
                 departmentId: selectedDept,
-                name: sanitizeInput(newFolderName.trim()),
+                name: sanitizeInput(name),
                 createdBy: user?.uid
             });
-            setNewFolderName("");
-            setIsCreatingFolder(false);
 
-            if (selectedSub) {
-                const f = await getFolders(selectedSub);
-                setFolders(f);
+            // 2. Move selected files (notes) into the new folder
+            if (selectedFileIds.length > 0) {
+                await moveNotesBulk(selectedFileIds, ref.id);
             }
+
+            // 3. Refresh content
+            if (selectedSub) {
+                const [f, n] = await Promise.all([
+                    getFolders(selectedSub),
+                    getNotes(selectedSub)
+                ]);
+                setFolders(f);
+                setNotes(n);
+            }
+
+            // 4. Select the new folder
             setSelectedFolder(ref.id);
-            addToast(`Folder '${newFolderName}' created and selected`, "success");
+            setIsCreateModalOpen(false);
+            addToast(`Folder '${name}' created and selected`, "success");
 
         } catch (error) {
             console.error("Failed to create folder", error);
@@ -344,41 +367,24 @@ export default function UploadFlow() {
                 <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "var(--surface)", borderRadius: "8px", border: "1px solid var(--border)" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                         <label style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-main)" }}>Target Folder (Optional)</label>
-                        {!isCreatingFolder && (
-                            <button
-                                onClick={() => setIsCreatingFolder(true)}
-                                className="btn-text"
-                                style={{ color: "var(--primary)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", background: "none", border: "none" }}
-                            >
-                                + Create New Folder
-                            </button>
-                        )}
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="btn-text"
+                            style={{ color: "var(--primary)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", background: "none", border: "none" }}
+                        >
+                            + Create New Folder
+                        </button>
                     </div>
 
-                    {isCreatingFolder ? (
-                        <div style={{ display: "flex", gap: "0.5rem", animation: "slideDown 0.2s" }}>
-                            <input
-                                type="text"
-                                placeholder="Folder Name (e.g. Module 1)"
-                                value={newFolderName}
-                                onChange={(e) => setNewFolderName(e.target.value)}
-                                className={styles.input}
-                                style={{ flex: 1 }}
-                            />
-                            <button onClick={handleCreateFolder} className="btn btn-primary" style={{ padding: "0 1rem" }}>Save</button>
-                            <button onClick={() => setIsCreatingFolder(false)} className="btn btn-ghost">Cancel</button>
-                        </div>
-                    ) : (
-                        <select
-                            value={selectedFolder}
-                            onChange={(e) => setSelectedFolder(e.target.value)}
-                            className={styles.select}
-                            style={{ width: "100%", background: "var(--surface)", color: "var(--text-main)" }}
-                        >
-                            <option value="">General Notes (Root)</option>
-                            {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                        </select>
-                    )}
+                    <select
+                        value={selectedFolder}
+                        onChange={(e) => setSelectedFolder(e.target.value)}
+                        className={styles.select}
+                        style={{ width: "100%", background: "var(--surface)", color: "var(--text-main)" }}
+                    >
+                        <option value="">General Notes (Root)</option>
+                        {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                    </select>
                     <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
                         {selectedFolder
                             ? "Files will be uploaded into this folder."
@@ -483,6 +489,16 @@ export default function UploadFlow() {
                     </button>
                 </div>
             </div>
-        </div >
+
+            {/* Create Folder Modal */}
+            <CreateFolderModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onCreate={handleCreateFolder}
+                currentLocationName={currentSubjectName}
+                availableFiles={availableOrphanFiles}
+                availableFolders={[]} // Folders intentionally excluded based on previous simplification
+            />
+        </div>
     );
 }
