@@ -491,10 +491,9 @@ export default function NotesBrowser() {
 
                             {/* Notes Grid */}
                             <div>
-                                {!selectedFolder && folders.length > 0 && <h4 style={{ fontSize: "1rem", color: "var(--text-muted)", marginBottom: "1rem" }}>General Notes</h4>}
                                 {filteredNotes.length === 0 ? (
                                     <p className="text-muted" style={{ fontStyle: "italic" }}>
-                                        {selectedFolder ? "This folder is empty." : (folders.length === 0 ? "No materials uploaded yet." : "No general notes.")}
+                                        {selectedFolder ? "This folder is empty." : (folders.length === 0 ? "No materials uploaded yet." : "No additional files in this subject.")}
                                     </p>
                                 ) : (
                                     <div className={styles.notesGrid}>
