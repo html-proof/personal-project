@@ -31,14 +31,13 @@ export default function CreateFolderModal({
             setFolderName("");
             // Teacher-First: Auto-detect and pre-select existing items
             const allFileIds = availableFiles.map(f => f.id);
-            const allFolderIds = availableFolders.map(f => f.id);
             setSelectedFileIds(allFileIds);
-            setSelectedFolderIds(allFolderIds);
+            setSelectedFolderIds([]);
 
             // Auto-expand if there are items to organize
-            setIsExpanded(allFileIds.length > 0 || allFolderIds.length > 0);
+            setIsExpanded(allFileIds.length > 0);
         }
-    }, [isOpen, availableFiles, availableFolders]);
+    }, [isOpen, availableFiles]);
 
     if (!isOpen) return null;
 
@@ -101,7 +100,7 @@ export default function CreateFolderModal({
                         />
                     </div>
 
-                    {(availableFiles.length > 0 || availableFolders.length > 0) && (
+                    {(availableFiles.length > 0) && (
                         <div className={styles.inputGroup}>
                             <button
                                 type="button"
@@ -118,23 +117,6 @@ export default function CreateFolderModal({
                                         We found files here. Uncheck any you <strong>don't</strong> want to move.
                                     </div>
                                     <div className={styles.fileList}>
-                                        {availableFolders.map(folder => (
-                                            <div
-                                                key={folder.id}
-                                                className={styles.fileItem}
-                                                onClick={() => toggleFolderSelection(folder.id)}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedFolderIds.includes(folder.id)}
-                                                    onChange={() => { }} // dummy
-                                                    style={{ cursor: "pointer" }}
-                                                />
-                                                <Folder size={16} color="#3b82f6" fill="rgba(59, 130, 246, 0.2)" />
-                                                <span className={styles.itemLabel}>{folder.name}</span>
-                                            </div>
-                                        ))}
-
                                         {availableFiles.map(file => (
                                             <div
                                                 key={file.id}
@@ -153,7 +135,7 @@ export default function CreateFolderModal({
                                         ))}
                                     </div>
                                     <div style={{ marginTop: "0.5rem", fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "right" }}>
-                                        {selectedFileIds.length + selectedFolderIds.length} item{selectedFileIds.length + selectedFolderIds.length !== 1 ? 's' : ''} selected
+                                        {selectedFileIds.length} item{selectedFileIds.length !== 1 ? 's' : ''} selected
                                     </div>
                                 </>
                             )}
