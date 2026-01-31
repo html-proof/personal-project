@@ -269,10 +269,14 @@ export default function NotesBrowser() {
 
     return (
         <div className={styles.browser}>
-            {/* Header Area with Search on the Right */}
+            {/* Header Area with Search */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
                 <h2 style={{ fontSize: "2rem", color: "var(--text-main)", margin: 0 }}>Browse Files</h2>
 
+                {/* Always show search if we are deep enough or just generally accessible? 
+                    User request implies simple drill down. Let's keep search available if dept is selected or global?
+                    Existing logic required selectedDept. Converting to behave globally or per-dept if selected.
+                 */}
                 {selectedDept && (
                     <div className="search-container" style={{ flex: "1 1 300px", maxWidth: "400px" }}>
                         <form onSubmit={handleSearch} style={{ display: "flex", gap: "0.5rem" }}>
@@ -322,209 +326,215 @@ export default function NotesBrowser() {
                 )}
             </div>
 
-            {/* Department Selection */}
-            <div className="card" style={{ marginBottom: "2rem" }}>
-                <h3 className={styles.colTitle}>Select Department</h3>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                    {departments.map(d => (
-                        <button
-                            key={d.id}
-                            onClick={() => handleDeptClick(d)}
-                            className={`btn ${selectedDept?.id === d.id ? styles.active : 'btn-outline'}`}
-                            style={{
-                                padding: "0.5rem 1rem",
-                                border: selectedDept?.id === d.id ? "1px solid var(--primary)" : "1px solid var(--border)",
-                                background: selectedDept?.id === d.id ? "var(--primary)" : "transparent",
-                                color: selectedDept?.id === d.id ? "white" : "var(--text-main)"
-                            }}
-                        >
-                            {d.name}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            {/* Drill Down Views */}
+            <div className={styles.drillDownContainer}>
 
-            {/* Rest of Content */}
-            {selectedDept && (
-                <>
-                    {/* Search Results */}
-                    {isSearching ? (
-                        <div className={styles.notesSection}>
-                            <h3 className={styles.notesTitle}>
-                                Search Results
-                                <button
-                                    onClick={clearSearch}
-                                    className="btn btn-outline"
-                                    style={{ float: "right", fontSize: "0.8rem", padding: "0.25rem 0.75rem" }}
-                                >
-                                    Clear Search
-                                </button>
-                            </h3>
-                            {loading ? <p>Searching...</p> : searchResults.length === 0 ? (
-                                <p>No matches found.</p>
-                            ) : (
-                                <div className={styles.notesGrid}>
-                                    {searchResults.map(note => (
+                {/* Search Results Overlay */}
+                {isSearching ? (
+                    <div className={styles.notesSection}>
+                        <div className={styles.headerBar}>
+                            <button onClick={clearSearch} className={styles.backBtn} title="Back">
+                                <ArrowLeft size={24} />
+                            </button>
+                            <h3 className={styles.headerTitle}>Search Results</h3>
+                        </div>
+
+                        {loading ? <p>Searching...</p> : searchResults.length === 0 ? (
+                            <p>No matches found.</p>
+                        ) : (
+                            <div className={styles.notesGrid}>
+                                {searchResults.map(note => (
+                                    <div
+                                        key={note.id}
+                                        className={styles.noteCard}
+                                        onClick={() => setPreviewNote(note)}
+                                        style={{ cursor: "pointer" }}
+                                    >
+                                        <div className={styles.preview}>
+                                            {getPreview(note)}
+                                        </div>
+                                        <div className={styles.noteContent}>
+                                            <h4 className={styles.noteName} title={note.title}>{note.title}</h4>
+                                            <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
+                                            <div className={styles.actions}>
+                                                <button onClick={(e) => { e.stopPropagation(); setPreviewNote(note); }} className={styles.btn} title="View"><Eye size={18} /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); handleDownload(note.fileUrl, note.title); }} className={styles.btn} title="Download"><Download size={18} /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl, note.title); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <>
+                        {/* Level 0: Department Selection */}
+                        {!selectedDept && (
+                            <div className="view-transition">
+                                <h3 className={styles.colTitle}>Select Department</h3>
+                                <div className={styles.listGroup}>
+                                    {departments.map(d => (
                                         <div
-                                            key={note.id}
-                                            className={styles.noteCard}
-                                            onClick={() => setPreviewNote(note)}
-                                            style={{ cursor: "pointer" }}
+                                            key={d.id}
+                                            onClick={() => handleDeptClick(d)}
+                                            className={styles.listItem}
                                         >
-                                            <div className={styles.preview}>
-                                                {getPreview(note)}
-                                            </div>
-                                            <div className={styles.noteContent}>
-                                                <h4 className={styles.noteName} title={note.title}>{note.title}</h4>
-                                                <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
-                                                <div className={styles.actions}>
-                                                    <button onClick={(e) => { e.stopPropagation(); setPreviewNote(note); }} className={styles.btn} title="View"><Eye size={18} /></button>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleDownload(note.fileUrl, note.title); }} className={styles.btn} title="Download"><Download size={18} /></button>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl, note.title); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
-                                                </div>
-                                            </div>
+                                            <span>{d.name}</span>
+                                            <ChevronRight className={styles.listItemIcon} size={20} />
                                         </div>
                                     ))}
                                 </div>
-                            )}
-                        </div>
-                    ) : (
-                        <>
-                            {/* Semesters - Only show when department is selected */}
-                            {selectedDept && (
-                                <div className="card" style={{ marginBottom: "2rem" }}>
-                                    <h3 className={styles.colTitle}>Semesters</h3>
-                                    <ul className={styles.list}>
-                                        {semesters.length === 0 && <li className={styles.empty}>No semesters found.</li>}
-                                        {semesters.map(s => (
-                                            <li
-                                                key={s.id}
-                                                className={`${styles.item} ${selectedSem?.id === s.id ? styles.active : ''}`}
-                                                onClick={() => handleSemClick(s)}
-                                            >
-                                                {s.name} <ChevronRight size={16} />
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-
-                            {/* Subjects - Only show when semester is selected */}
-                            {selectedSem && (
-                                <div className="card" style={{ marginBottom: "2rem" }}>
-                                    <h3 className={styles.colTitle}>Subjects</h3>
-                                    <ul className={styles.list}>
-                                        {subjects.length === 0 && <li className={styles.empty}>No subjects found.</li>}
-                                        {subjects.map(s => (
-                                            <li
-                                                key={s.id}
-                                                className={`${styles.item} ${selectedSub?.id === s.id ? styles.active : ''}`}
-                                                onClick={() => handleSubClick(s)}
-                                            >
-                                                {s.name} <ChevronRight size={16} />
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </>
-            )}
-
-            {/* Content View (Folders + Notes) */}
-            {!isSearching && selectedSub && (
-                <div id="notes-content" className={styles.notesSection}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-                        {selectedFolder && (
-                            <button
-                                onClick={() => updateUrl({ folder: null })}
-                                className="btn btn-outline"
-                                style={{ padding: "0.5rem", borderRadius: "50%", border: "none" }}
-                            >
-                                <ArrowLeft size={20} />
-                            </button>
+                            </div>
                         )}
-                        <h3 className={styles.notesTitle} style={{ margin: 0 }}>
-                            {selectedFolder ? selectedFolder.name : selectedSub.name}
-                        </h3>
-                    </div>
 
-                    {loading ? <p>Loading content...</p> : (
-                        <>
-                            {/* Folders Grid (Only show at root level) */}
-                            {!selectedFolder && folders.length > 0 && (
-                                <div style={{ marginBottom: "2rem" }}>
-                                    <h4 style={{ fontSize: "1rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Folders</h4>
-                                    <div className={styles.grid} style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
-                                        {folders.map(folder => (
-                                            <div
-                                                key={folder.id}
-                                                className="card"
-                                                onClick={() => updateUrl({ folder: folder.id })}
-                                                style={{
-                                                    cursor: "pointer",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    gap: "1rem",
-                                                    padding: "1.5rem",
-                                                    background: "var(--surface)",
-                                                    border: "1px solid var(--border)",
-                                                    transition: "transform 0.2s, box-shadow 0.2s"
-                                                }}
-                                                onMouseEnter={e => {
-                                                    e.currentTarget.style.transform = "translateY(-2px)";
-                                                    e.currentTarget.style.boxShadow = "var(--shadow-md)";
-                                                }}
-                                                onMouseLeave={e => {
-                                                    e.currentTarget.style.transform = "none";
-                                                    e.currentTarget.style.boxShadow = "none";
-                                                }}
-                                            >
-                                                <Folder size={24} className="text-primary" fill="currentColor" fillOpacity={0.2} />
-                                                <span style={{ fontWeight: 600 }}>{folder.name}</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                        {/* Level 1: Semester Selection */}
+                        {selectedDept && !selectedSem && (
+                            <div className="view-transition">
+                                <div className={styles.headerBar}>
+                                    <button onClick={() => updateUrl({ dept: null })} className={styles.backBtn} title="Back to Departments">
+                                        <ArrowLeft size={24} />
+                                    </button>
+                                    <h3 className={styles.headerTitle}>{selectedDept.name}</h3>
                                 </div>
-                            )}
+                                <h4 style={{ marginBottom: "1rem", color: "var(--text-muted)" }}>Select Semester</h4>
+                                <div className={styles.listGroup}>
+                                    {semesters.length === 0 && <p className={styles.empty}>No semesters found.</p>}
+                                    {semesters.map(s => (
+                                        <div
+                                            key={s.id}
+                                            onClick={() => handleSemClick(s)}
+                                            className={styles.listItem}
+                                        >
+                                            <span>{s.name}</span>
+                                            <ChevronRight className={styles.listItemIcon} size={20} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-                            {/* Notes Grid */}
-                            <div>
-                                {filteredNotes.length === 0 ? (
-                                    <p className="text-muted" style={{ fontStyle: "italic" }}>
-                                        {selectedFolder ? "This folder is empty." : (folders.length === 0 ? "No files uploaded yet." : "No files in the root of this subject.")}
-                                    </p>
-                                ) : (
-                                    <div className={styles.notesGrid}>
-                                        {filteredNotes.map(note => (
-                                            <div
-                                                key={note.id}
-                                                className={styles.noteCard}
-                                                onClick={() => setPreviewNote(note)}
-                                                style={{ cursor: "pointer" }}
-                                            >
-                                                <div className={styles.preview}>
-                                                    {getPreview(note)}
-                                                </div>
-                                                <div className={styles.noteContent}>
-                                                    <h4 className={styles.noteName} title={note.title}>{note.title}</h4>
-                                                    <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
-                                                    <div className={styles.actions}>
-                                                        <button onClick={(e) => { e.stopPropagation(); setPreviewNote(note); }} className={styles.btn} title="View"><Eye size={18} /></button>
-                                                        <button onClick={(e) => { e.stopPropagation(); handleDownload(note.fileUrl, note.title); }} className={styles.btn} title="Download"><Download size={18} /></button>
-                                                        <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl, note.title); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
-                                                    </div>
+                        {/* Level 2: Subject Selection */}
+                        {selectedDept && selectedSem && !selectedSub && (
+                            <div className="view-transition">
+                                <div className={styles.headerBar}>
+                                    <button onClick={() => updateUrl({ sem: null })} className={styles.backBtn} title="Back to Semesters">
+                                        <ArrowLeft size={24} />
+                                    </button>
+                                    <h3 className={styles.headerTitle}>{selectedSem.name}</h3>
+                                </div>
+                                <h4 style={{ marginBottom: "1rem", color: "var(--text-muted)" }}>Select Subject</h4>
+                                <div className={styles.listGroup}>
+                                    {subjects.length === 0 && <p className={styles.empty}>No subjects found.</p>}
+                                    {subjects.map(s => (
+                                        <div
+                                            key={s.id}
+                                            onClick={() => handleSubClick(s)}
+                                            className={styles.listItem}
+                                        >
+                                            <span>{s.name}</span>
+                                            <ChevronRight className={styles.listItemIcon} size={20} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Level 3: Content (Folders/Notes) */}
+                        {selectedSub && (
+                            <div className="view-transition" id="notes-content">
+                                <div className={styles.headerBar}>
+                                    <button
+                                        onClick={() => {
+                                            if (selectedFolder) {
+                                                updateUrl({ folder: null });
+                                            } else {
+                                                updateUrl({ sub: null });
+                                            }
+                                        }}
+                                        className={styles.backBtn}
+                                        title={selectedFolder ? "Back to Subject" : "Back to Subjects"}
+                                    >
+                                        <ArrowLeft size={24} />
+                                    </button>
+                                    <h3 className={styles.headerTitle}>
+                                        {selectedFolder ? selectedFolder.name : selectedSub.name}
+                                    </h3>
+                                </div>
+
+                                {loading ? <div style={{ padding: "2rem", textAlign: "center" }}><p>Loading content...</p></div> : (
+                                    <>
+                                        {/* Folders */}
+                                        {!selectedFolder && folders.length > 0 && (
+                                            <div style={{ marginBottom: "2rem" }}>
+                                                <h4 style={{ fontSize: "1rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Folders</h4>
+                                                <div className={styles.grid} style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
+                                                    {folders.map(folder => (
+                                                        <div
+                                                            key={folder.id}
+                                                            className="card"
+                                                            onClick={() => updateUrl({ folder: folder.id })}
+                                                            style={{
+                                                                cursor: "pointer",
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                gap: "1rem",
+                                                                padding: "1.5rem",
+                                                                background: "var(--surface)",
+                                                                border: "1px solid var(--border)",
+                                                                transition: "transform 0.2s, box-shadow 0.2s"
+                                                            }}
+                                                            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "var(--shadow-md)"; }}
+                                                            onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
+                                                        >
+                                                            <Folder size={24} className="text-primary" fill="currentColor" fillOpacity={0.2} />
+                                                            <span style={{ fontWeight: 600 }}>{folder.name}</span>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
+                                        )}
+
+                                        {/* Notes */}
+                                        <div>
+                                            {filteredNotes.length === 0 ? (
+                                                <p className="text-muted" style={{ fontStyle: "italic", textAlign: "center", padding: "2rem" }}>
+                                                    {selectedFolder ? "This folder is empty." : (folders.length === 0 ? "No files uploaded to this subject yet." : "No files in the root of this subject.")}
+                                                </p>
+                                            ) : (
+                                                <div className={styles.notesGrid}>
+                                                    {filteredNotes.map(note => (
+                                                        <div
+                                                            key={note.id}
+                                                            className={styles.noteCard}
+                                                            onClick={() => setPreviewNote(note)}
+                                                            style={{ cursor: "pointer" }}
+                                                        >
+                                                            <div className={styles.preview}>
+                                                                {getPreview(note)}
+                                                            </div>
+                                                            <div className={styles.noteContent}>
+                                                                <h4 className={styles.noteName} title={note.title}>{note.title}</h4>
+                                                                <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
+                                                                <div className={styles.actions}>
+                                                                    <button onClick={(e) => { e.stopPropagation(); setPreviewNote(note); }} className={styles.btn} title="View"><Eye size={18} /></button>
+                                                                    <button onClick={(e) => { e.stopPropagation(); handleDownload(note.fileUrl, note.title); }} className={styles.btn} title="Download"><Download size={18} /></button>
+                                                                    <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl, note.title); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
                                 )}
                             </div>
-                        </>
-                    )}
-                </div>
-            )}
+                        )}
+                    </>
+                )}
+            </div>
+
             {/* Preview Modal */}
             {previewNote && (
                 <FilePreviewModal
