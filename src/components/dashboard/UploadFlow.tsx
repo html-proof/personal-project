@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { UploadCloud, File, Film, Image as ImageIcon, CheckCircle, XCircle, Trash2, FileSpreadsheet, Presentation } from "lucide-react";
 import {
     getDepartments,
-    getBatches,
     getSemesters,
     getSubjects,
     getFolders,
@@ -31,13 +30,14 @@ export default function UploadFlow() {
     const [subjects, setSubjects] = useState<any[]>([]);
 
     const [selectedDept, setSelectedDept] = useState("");
-    const [batches, setBatches] = useState<any[]>([]);
-    const [selectedBatch, setSelectedBatch] = useState("");
+    // const [batches, setBatches] = useState<any[]>([]); // Batch removed
+    // const [selectedBatch, setSelectedBatch] = useState(""); // Batch removed
     const [selectedSem, setSelectedSem] = useState("");
     const [selectedSub, setSelectedSub] = useState("");
     const [selectedFolder, setSelectedFolder] = useState("");
 
-    const isSelectionComplete = selectedDept && selectedBatch && selectedSem;
+    // Simplified selection check (Dept -> Sem -> Sub)
+    const isSelectionComplete = selectedDept && selectedSem;
 
     const [folders, setFolders] = useState<any[]>([]);
     const [notes, setNotes] = useState<any[]>([]);
@@ -64,27 +64,16 @@ export default function UploadFlow() {
 
     useEffect(() => {
         if (!selectedDept) {
-            setBatches([]);
-            return;
-        }
-        async function loadBatches() {
-            const b = await getBatches(selectedDept);
-            setBatches(b);
-        }
-        loadBatches();
-    }, [selectedDept]);
-
-    useEffect(() => {
-        if (!selectedBatch) {
             setSemesters([]);
             return;
         }
         async function loadSems() {
-            const sems = await getSemesters(selectedBatch);
+            // Load semesters for the department directly
+            const sems = await getSemesters(selectedDept);
             setSemesters(sems);
         }
         loadSems();
-    }, [selectedBatch]);
+    }, [selectedDept]);
 
     useEffect(() => {
         if (!selectedSem) {
@@ -121,7 +110,7 @@ export default function UploadFlow() {
             const ref = await createFolder({
                 subjectId: selectedSub || "general",
                 semesterId: selectedSem,
-                batchId: selectedBatch,
+                batchId: null, // Batch removed
                 departmentId: selectedDept,
                 name: sanitizeInput(name),
                 createdBy: user?.uid
@@ -215,7 +204,7 @@ export default function UploadFlow() {
     };
 
     const handleSubmit = async () => {
-        if (!selectedDept || !selectedBatch || !selectedSem || files.length === 0 || !user) return;
+        if (!selectedDept || !selectedSem || files.length === 0 || !user) return;
 
         setUploading(true);
         const newProgress: any = {};
@@ -244,7 +233,7 @@ export default function UploadFlow() {
                     const ref = await createFolder({
                         subjectId: selectedSub || "general",
                         semesterId: selectedSem,
-                        batchId: selectedBatch,
+                        batchId: null, // Batch removed
                         departmentId: selectedDept,
                         name: folderName,
                         createdBy: user.uid
@@ -277,7 +266,7 @@ export default function UploadFlow() {
 
                     await createNote({
                         departmentId: selectedDept,
-                        batchId: selectedBatch,
+                        batchId: null, // Batch removed
                         semesterId: selectedSem,
                         subjectId: selectedSub || "general",
                         folderId: targetFolderId,
@@ -326,7 +315,7 @@ export default function UploadFlow() {
                 <div className={styles.grid}>
                     <select
                         value={selectedDept}
-                        onChange={(e) => { setSelectedDept(e.target.value); setSelectedBatch(""); setSelectedSem(""); setSelectedSub(""); }}
+                        onChange={(e) => { setSelectedDept(e.target.value); setSelectedSem(""); setSelectedSub(""); }}
                         className={styles.select}
                     >
                         <option value="">Select Department</option>
@@ -334,20 +323,10 @@ export default function UploadFlow() {
                     </select>
 
                     <select
-                        value={selectedBatch}
-                        onChange={(e) => { setSelectedBatch(e.target.value); setSelectedSem(""); setSelectedSub(""); }}
-                        className={styles.select}
-                        disabled={!selectedDept}
-                    >
-                        <option value="">Select Batch</option>
-                        {batches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                    </select>
-
-                    <select
                         value={selectedSem}
                         onChange={(e) => { setSelectedSem(e.target.value); setSelectedSub(""); }}
                         className={styles.select}
-                        disabled={!selectedBatch}
+                        disabled={!selectedDept}
                     >
                         <option value="">Select Semester</option>
                         {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -362,7 +341,7 @@ export default function UploadFlow() {
                 transition: "opacity 0.3s"
             }}>
 
-                {!isSelectionComplete && <p style={{ color: "var(--primary)", fontWeight: 500, marginBottom: "1rem" }}>Please select Department, Batch, and Semester to enable upload options.</p>}
+                {!isSelectionComplete && <p style={{ color: "var(--primary)", fontWeight: 500, marginBottom: "1rem" }}>Please select Department and Semester to enable upload options.</p>}
 
                 <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "var(--surface)", borderRadius: "8px", border: "1px solid var(--border)" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>

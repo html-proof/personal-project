@@ -57,15 +57,15 @@ export const updateBatch = (id: string, name: string) =>
 export const deleteBatch = (id: string) => deleteDoc(doc(db, BATCHES, id));
 
 // --- Semesters ---
-export const getSemesters = async (batchId: string) => {
-    const q = query(collection(db, SEMESTERS), where("batchId", "==", batchId));
+export const getSemesters = async (departmentId: string) => {
+    const q = query(collection(db, SEMESTERS), where("departmentId", "==", departmentId));
     const snapshot = await getDocs(q);
     // Sort manually or add composite index
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 };
 
-export const createSemester = (batchId: string, name: string) =>
-    addDoc(collection(db, SEMESTERS), { batchId, name, createdAt: serverTimestamp() });
+export const createSemester = (departmentId: string, name: string) =>
+    addDoc(collection(db, SEMESTERS), { departmentId, name, createdAt: serverTimestamp() });
 
 export const updateSemester = (id: string, name: string) =>
     updateDoc(doc(db, SEMESTERS, id), { name });

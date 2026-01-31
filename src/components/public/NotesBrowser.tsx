@@ -14,8 +14,8 @@ export default function NotesBrowser() {
 
     const [departments, setDepartments] = useState<any[]>([]);
     const [selectedDept, setSelectedDept] = useState<any>(null);
-    const [batches, setBatches] = useState<any[]>([]);
-    const [selectedBatch, setSelectedBatch] = useState<any>(null);
+    // const [batches, setBatches] = useState<any[]>([]); // Batch removed
+    // const [selectedBatch, setSelectedBatch] = useState<any>(null); // Batch removed
     const [semesters, setSemesters] = useState<any[]>([]);
     const [selectedSem, setSelectedSem] = useState<any>(null);
     const [subjects, setSubjects] = useState<any[]>([]);
@@ -41,7 +41,7 @@ export default function NotesBrowser() {
             if (departments.length === 0) return;
 
             const deptId = searchParams.get("dept");
-            const batchId = searchParams.get("batch");
+            // const batchId = searchParams.get("batch"); // Batch removed
             const semId = searchParams.get("sem");
             const subId = searchParams.get("sub");
             const folderId = searchParams.get("folder");
@@ -51,33 +51,18 @@ export default function NotesBrowser() {
                 const dept = departments.find(d => d.id === deptId);
                 if (dept) {
                     setSelectedDept(dept);
-                    const b = await getBatches(dept.id);
-                    setBatches(b);
-                }
-            } else if (!deptId && selectedDept) {
-                // Reset if URL cleared
-                setSelectedDept(null);
-                setBatches([]);
-                return;
-            }
-
-            // Sync Batch
-            if (batchId && selectedBatch?.id !== batchId) {
-                const batch = await getBatches(deptId!).then(res => res.find(b => b.id === batchId)); // Re-fetch to be safe or find in current batches if we could trust order
-                if (batch) {
-                    setSelectedBatch(batch);
-                    const s = await getSemesters(batch.id);
+                    const s = await getSemesters(dept.id); // Fetch sems directly
                     setSemesters(s);
                 }
-            } else if (!batchId && selectedBatch) {
-                setSelectedBatch(null);
+            } else if (!deptId && selectedDept) {
+                setSelectedDept(null);
                 setSemesters([]);
                 return;
             }
 
-            // Sync Semester
+            // Sync Semester (Check against department sems, not batch)
             if (semId && selectedSem?.id !== semId) {
-                const sem = await getSemesters(batchId!).then(res => res.find(s => s.id === semId));
+                const sem = await getSemesters(deptId!).then(res => res.find(s => s.id === semId));
                 if (sem) {
                     setSelectedSem(sem);
                     const realSubjects = await getSubjects(sem.id);
@@ -180,13 +165,7 @@ export default function NotesBrowser() {
         setIsSearching(false);
     }
 
-    function handleBatchClick(batch: any) {
-        if (selectedBatch?.id === batch.id) {
-            updateUrl({ batch: null, sem: null, sub: null, folder: null });
-            return;
-        }
-        updateUrl({ batch: batch.id, sem: null, sub: null, folder: null });
-    }
+    // handleBatchClick removed
 
     function handleSemClick(sem: any) {
         if (selectedSem?.id === sem.id) {
@@ -415,29 +394,10 @@ export default function NotesBrowser() {
                         </div>
                     ) : (
                         <div className={styles.grid}>
-                            {/* Batches */}
-                            <div className={`card ${!selectedDept ? styles.disabled : ''}`}>
-                                <h3 className={styles.colTitle}>Batches</h3>
-                                {selectedDept && (
-                                    <ul className={styles.list}>
-                                        {batches.length === 0 && <li className={styles.empty}>No batches found.</li>}
-                                        {batches.map(b => (
-                                            <li
-                                                key={b.id}
-                                                className={`${styles.item} ${selectedBatch?.id === b.id ? styles.active : ''}`}
-                                                onClick={() => handleBatchClick(b)}
-                                            >
-                                                {b.name} <ChevronRight size={16} />
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-
                             {/* Semesters */}
-                            <div className={`card ${!selectedBatch ? styles.disabled : ''}`}>
+                            <div className={`card ${!selectedDept ? styles.disabled : ''}`}>
                                 <h3 className={styles.colTitle}>Semesters</h3>
-                                {selectedBatch && (
+                                {selectedDept && (
                                     <ul className={styles.list}>
                                         {semesters.length === 0 && <li className={styles.empty}>No semesters found.</li>}
                                         {semesters.map(s => (
@@ -451,7 +411,7 @@ export default function NotesBrowser() {
                                         ))}
                                     </ul>
                                 )}
-                                {!selectedBatch && <p className={styles.hint}>Select a batch first.</p>}
+                                {!selectedDept && <p className={styles.hint}>Select a department first.</p>}
                             </div>
 
                             {/* Subjects */}

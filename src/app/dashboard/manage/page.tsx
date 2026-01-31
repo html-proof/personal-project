@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import {
     getDepartments, createDepartment, updateDepartment, deleteDepartment,
-    getBatches, createBatch, updateBatch, deleteBatch,
+    // getBatches, createBatch, updateBatch, deleteBatch, // Batches removed
     getSemesters, createSemester, updateSemester, deleteSemester,
     getSubjects, createSubject, updateSubject, deleteSubject,
     getFolders, createFolder, updateFolder, deleteFolder,
@@ -20,21 +20,21 @@ export default function ManageStructurePage() {
     const { scheduleDelete } = useUndo();
 
     const [departments, setDepartments] = useState<any[]>([]);
-    const [batches, setBatches] = useState<any[]>([]);
+    // const [batches, setBatches] = useState<any[]>([]); // Removed
     const [semesters, setSemesters] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [folders, setFolders] = useState<any[]>([]);
     const [notes, setNotes] = useState<any[]>([]);
 
     const [selectedDept, setSelectedDept] = useState<any>(null);
-    const [selectedBatch, setSelectedBatch] = useState<any>(null);
+    // const [selectedBatch, setSelectedBatch] = useState<any>(null); // Removed
     const [selectedSem, setSelectedSem] = useState<any>(null);
     const [selectedSub, setSelectedSub] = useState<any>(null);
     const [selectedFolder, setSelectedFolder] = useState<any>(null);
 
     // Separate creation states
     const [newDeptName, setNewDeptName] = useState("");
-    const [newBatchName, setNewBatchName] = useState("");
+    // const [newBatchName, setNewBatchName] = useState(""); // Removed
     const [newSemName, setNewSemName] = useState("");
     const [newSubName, setNewSubName] = useState("");
     const [newFolderName, setNewFolderName] = useState("");
@@ -50,8 +50,9 @@ export default function ManageStructurePage() {
     }, [user, loading, router]);
 
     useEffect(() => { loadDepartments(); }, []);
-    useEffect(() => { if (selectedDept) loadBatches(selectedDept.id); }, [selectedDept]);
-    useEffect(() => { if (selectedBatch) loadSemesters(selectedBatch.id); }, [selectedBatch]);
+    useEffect(() => { loadDepartments(); }, []);
+    useEffect(() => { if (selectedDept) loadSemesters(selectedDept.id); }, [selectedDept]);
+    // useEffect(() => { if (selectedBatch) loadSemesters(selectedBatch.id); }, [selectedBatch]); // Removed
     useEffect(() => { if (selectedSem) loadSubjects(selectedSem.id); }, [selectedSem]);
     useEffect(() => { if (selectedSub) loadFolders(selectedSub.id); }, [selectedSub]);
     useEffect(() => { if (selectedSub) loadNotes(selectedSub.id); }, [selectedSub, selectedFolder]); // Reload notes when folder changes
@@ -60,8 +61,8 @@ export default function ManageStructurePage() {
         const depts = await getDepartments();
         setDepartments(depts);
     }
-    async function loadBatches(deptId: string) { setBatches(await getBatches(deptId)); }
-    async function loadSemesters(batchId: string) { setSemesters(await getSemesters(batchId)); }
+    // async function loadBatches(deptId: string) { setBatches(await getBatches(deptId)); }
+    async function loadSemesters(deptId: string) { setSemesters(await getSemesters(deptId)); }
     async function loadSubjects(semId: string) { setSubjects(await getSubjects(semId)); }
     async function loadFolders(subId: string) { setFolders(await getFolders(subId)); }
     // async function loadNotes(subId: string) { setNotes(await getNotes(subId)); } // Replaced by filtering logic below or refined fetch 
@@ -104,6 +105,8 @@ export default function ManageStructurePage() {
         finally { setIsCreating(false); }
     }
 
+    // Batch functions removed
+    /*
     async function handleCreateBatch() {
         if (!newBatchName.trim() || !selectedDept) return;
         setIsCreating(true);
@@ -114,13 +117,14 @@ export default function ManageStructurePage() {
         } catch (e) { console.error(e); alert("Failed to create."); }
         finally { setIsCreating(false); }
     }
+    */
 
     async function handleCreateSem() {
-        if (!newSemName.trim() || !selectedBatch) return;
+        if (!newSemName.trim() || !selectedDept) return;
         setIsCreating(true);
         try {
-            await createSemester(selectedBatch.id, newSemName);
-            await loadSemesters(selectedBatch.id);
+            await createSemester(selectedDept.id, newSemName);
+            await loadSemesters(selectedDept.id);
             setNewSemName("");
         } catch (e) { console.error(e); alert("Failed to create."); }
         finally { setIsCreating(false); }
@@ -143,7 +147,7 @@ export default function ManageStructurePage() {
         try {
             await createFolder({
                 departmentId: selectedDept.id,
-                batchId: selectedBatch.id,
+                batchId: null, // Batch removed
                 semesterId: selectedSem.id,
                 subjectId: selectedSub.id,
                 name: newFolderName
@@ -160,12 +164,14 @@ export default function ManageStructurePage() {
             if (editingItem.type === 'dept') {
                 await updateDepartment(editingItem.id, editName);
                 await loadDepartments();
-            } else if (editingItem.type === 'batch') {
-                await updateBatch(editingItem.id, editName);
-                await loadBatches(selectedDept.id);
+                /*
+                } else if (editingItem.type === 'batch') {
+                    await updateBatch(editingItem.id, editName);
+                    await loadBatches(selectedDept.id);
+                */
             } else if (editingItem.type === 'sem') {
                 await updateSemester(editingItem.id, editName);
-                await loadSemesters(selectedBatch.id);
+                await loadSemesters(selectedDept.id);
             } else if (editingItem.type === 'sub') {
                 await updateSubject(editingItem.id, editName);
                 await loadSubjects(selectedSem.id);
@@ -194,17 +200,10 @@ export default function ManageStructurePage() {
                 await deleteDepartment(item.id);
             }, `Department '${item.name}'`, undoCallback);
 
-        } else if (type === 'batch') {
-            setBatches(prev => prev.filter(b => b.id !== item.id));
-            if (selectedBatch?.id === item.id) setSelectedBatch(null);
-            undoCallback = () => {
-                setBatches(prev => [...prev, item].sort((a, b) => a.name.localeCompare(b.name)));
-            };
-
-            scheduleDelete(item.id, async () => {
-                await deleteBatch(item.id);
-            }, `Batch '${item.name}'`, undoCallback);
-
+            /*
+            } else if (type === 'batch') {
+                // Batch logic removed
+            */
         } else if (type === 'sem') {
             setSemesters(prev => prev.filter(s => s.id !== item.id));
             if (selectedSem?.id === item.id) setSelectedSem(null);
@@ -268,7 +267,7 @@ export default function ManageStructurePage() {
             {editingItem && (
                 <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
                     <div className="card" style={{ width: "400px" }}>
-                        <h3>Edit {editingItem.type === 'dept' ? 'Department' : editingItem.type === 'batch' ? 'Batch' : editingItem.type === 'sem' ? 'Semester' : editingItem.type === 'sub' ? 'Subject' : 'Folder'}</h3>
+                        <h3>Edit {editingItem.type === 'dept' ? 'Department' : editingItem.type === 'sem' ? 'Semester' : editingItem.type === 'sub' ? 'Subject' : 'Folder'}</h3>
                         <input
                             value={editName} onChange={e => setEditName(e.target.value)}
                             className="form-input" style={{ width: "100%", padding: "0.5rem", marginTop: "1rem", marginBottom: "1rem", borderRadius: "var(--radius)", border: "1px solid var(--border)" }}
@@ -311,45 +310,14 @@ export default function ManageStructurePage() {
                     </ul>
                 </div>
 
-                {/* 2. Batches */}
+                {/* 2. Batches Removed */}
+
+                {/* 3. Semesters */}
                 {selectedDept && (
                     <div className="card">
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", borderBottom: "1px solid var(--border)", paddingBottom: "0.5rem" }}>
-                            <h3>Batches</h3>
-                            <button onClick={() => setSelectedDept(null)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={16} /></button>
-                        </div>
-                        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
-                            <input className="form-input" placeholder="New Batch..."
-                                value={newBatchName} onChange={e => setNewBatchName(e.target.value)}
-                                style={{ flex: 1, padding: "0.5rem", borderRadius: "var(--radius)", border: "1px solid var(--border)" }} />
-                            <button className="btn btn-primary" onClick={handleCreateBatch} disabled={!newBatchName.trim() || isCreating} style={{ padding: "0.5rem" }}><Plus size={20} /></button>
-                        </div>
-                        <ul style={{ listStyle: "none" }}>
-                            {batches.map(b => (
-                                <li key={b.id} style={{
-                                    padding: "0.5rem", borderRadius: "var(--radius)", marginBottom: "0.25rem", cursor: "pointer",
-                                    background: selectedBatch?.id === b.id ? "var(--primary)" : "transparent", color: selectedBatch?.id === b.id ? "white" : "inherit",
-                                    display: "flex", justifyContent: "space-between", alignItems: "center"
-                                }} onClick={() => { setSelectedBatch(b); setSelectedSem(null); setSelectedSub(null); setSelectedFolder(null); }}>
-                                    <span>{b.name}</span>
-                                    {selectedBatch?.id !== b.id && (
-                                        <div style={{ display: "flex", gap: "0.5rem" }}>
-                                            <button onClick={(e) => { e.stopPropagation(); startEdit(b, 'batch'); }} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer" }}><Pencil size={14} /></button>
-                                            <button onClick={(e) => { e.stopPropagation(); handleDelete(b, 'batch'); }} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer" }}><Trash2 size={14} /></button>
-                                        </div>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
-                {/* 3. Semesters */}
-                {selectedBatch && (
-                    <div className="card">
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", borderBottom: "1px solid var(--border)", paddingBottom: "0.5rem" }}>
                             <h3>Semesters</h3>
-                            <button onClick={() => setSelectedBatch(null)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={16} /></button>
+                            <button onClick={() => setSelectedDept(null)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={16} /></button>
                         </div>
                         <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
                             <input className="form-input" placeholder="New Sem..."
