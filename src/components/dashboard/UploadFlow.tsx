@@ -297,7 +297,7 @@ export default function UploadFlow() {
             <h2 className={styles.title}>Upload Note</h2>
 
             <div className={styles.section}>
-                <h3 className={styles.stepTitle}>1. Select Structure</h3>
+                <h3 className={styles.stepTitle}>Select Destination</h3>
                 {departments.length === 0 && <p className="text-danger">No departments found. Please create structure in Manage page first.</p>}
 
                 <div className={styles.grid}>
@@ -338,7 +338,7 @@ export default function UploadFlow() {
                 pointerEvents: isSelectionComplete ? "auto" : "none",
                 transition: "opacity 0.3s"
             }}>
-                <h3 className={styles.stepTitle}>2. Choose Upload Method (Optional)</h3>
+
                 {!isSelectionComplete && <p style={{ color: "var(--primary)", fontWeight: 500, marginBottom: "1rem" }}>Please select Department, Batch, and Semester to enable upload options.</p>}
 
                 <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "var(--surface)", borderRadius: "8px", border: "1px solid var(--border)" }}>
