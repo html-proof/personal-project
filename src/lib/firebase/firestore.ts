@@ -99,8 +99,14 @@ export const createFolder = (data: any) =>
 export const updateFolder = (id: string, name: string) =>
     updateDoc(doc(db, FOLDERS, id), { name });
 
-export const moveFolder = (id: string, subjectId: string) =>
-    updateDoc(doc(db, FOLDERS, id), { subjectId });
+// Enhanced move to support nesting
+export const moveFolder = (id: string, parentId: string | null) =>
+    updateDoc(doc(db, FOLDERS, id), { parentId: parentId || null });
+
+export const moveFoldersBulk = async (ids: string[], parentId: string | null) => {
+    const promises = ids.map(id => updateDoc(doc(db, FOLDERS, id), { parentId: parentId || null }));
+    return Promise.all(promises);
+};
 
 export const deleteFolder = (id: string) => deleteDoc(doc(db, FOLDERS, id));
 

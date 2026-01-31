@@ -9,7 +9,9 @@ import {
     moveNotesBulk,
     deleteNotesBulk,
     updateFolder,
-    deleteFolder
+    deleteFolder,
+    moveFolder,
+    moveFoldersBulk
 } from "@/lib/firebase/firestore";
 import { useAuth } from "@/lib/firebase/auth";
 import { useUndo } from "@/context/UndoContext";
@@ -38,6 +40,7 @@ import ConfirmationModal from "@/components/common/ConfirmationModal";
 import { createFolder } from "@/lib/firebase/firestore";
 import { uploadFile } from "@/lib/supabase/storage";
 import { FolderPlus, RefreshCw, Upload } from "lucide-react";
+import CreateFolderModal from "./CreateFolderModal";
 
 export default function MyNotes() {
     const { user } = useAuth();
@@ -65,7 +68,7 @@ export default function MyNotes() {
         isDanger: false
     });
 
-    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newFolderName, setNewFolderName] = useState("");
 
     const [replacingNoteId, setReplacingNoteId] = useState<string | null>(null);
@@ -179,24 +182,49 @@ export default function MyNotes() {
         }
     };
 
-    const handleCreateFolder = async () => {
-        if (!newFolderName.trim() || !user) return;
+    const handleCreateFolder = async (name: string, fileIdsToMove: string[] = [], folderIdsToMove: string[] = []) => {
+        if (!name.trim() || !user) return;
         try {
+            // 1. Create Folder
             const ref = await createFolder({
-                name: newFolderName.trim(),
+                name: name.trim(),
                 createdBy: user.uid,
+                parentId: currentFolder ? currentFolder.id : null // IMPORTANT: Support creating nested folder
             });
 
             const newFolder = {
                 id: ref.id,
-                name: newFolderName.trim(),
-                createdBy: user.uid
+                name: name.trim(),
+                createdBy: user.uid,
+                parentId: currentFolder ? currentFolder.id : null
             };
 
             setFolders(prev => [...prev, newFolder]);
-            setNewFolderName("");
-            setIsCreatingFolder(false);
-            addToast("Folder created successfully", "success");
+
+            let messages = [];
+
+            // 2. Move selected files if any
+            if (fileIdsToMove.length > 0) {
+                await moveNotesBulk(fileIdsToMove, ref.id);
+                setNotes(prev => prev.map(n => fileIdsToMove.includes(n.id) ? { ...n, folderId: ref.id } : n));
+                messages.push(`${fileIdsToMove.length} files`);
+            }
+
+            // 3. Move selected folders if any
+            if (folderIdsToMove.length > 0) {
+                await moveFoldersBulk(folderIdsToMove, ref.id);
+                // Update local state: change the parentId of moved folders to the new folder's ID
+                setFolders(prev => prev.map(f => folderIdsToMove.includes(f.id) ? { ...f, parentId: ref.id } : f));
+                messages.push(`${folderIdsToMove.length} folders`);
+            }
+
+            if (messages.length > 0) {
+                addToast(`Folder created and ${messages.join(", ")} moved`, "success");
+            } else {
+                addToast("Folder created successfully", "success");
+            }
+
+            setIsCreateModalOpen(false);
         } catch (error) {
             console.error("Failed to create folder", error);
             addToast("Failed to create folder", "error");
@@ -338,9 +366,13 @@ export default function MyNotes() {
 
     if (loading) return <div>Loading your files...</div>;
 
-    const visibleFolders = currentFolder
-        ? []
-        : folders;
+    const visibleFolders = folders.filter(f => {
+        if (currentFolder) {
+            return f.parentId === currentFolder.id;
+        } else {
+            return !f.parentId;
+        }
+    });
 
     const visibleNotes = notes.filter(n => {
         if (currentFolder) {
@@ -367,24 +399,14 @@ export default function MyNotes() {
 
                 <div className={styles.headerActions}>
                     {!currentFolder && (
-                        !isCreatingFolder ? (
-                            <button onClick={() => setIsCreatingFolder(true)} className={styles.createBtn}>
-                                <FolderPlus size={18} /> New Folder
-                            </button>
-                        ) : (
-                            <div style={{ display: "flex", gap: "0.5rem" }}>
-                                <input
-                                    className={styles.editInput}
-                                    placeholder="Folder Name"
-                                    value={newFolderName}
-                                    onChange={e => setNewFolderName(e.target.value)}
-                                    autoFocus
-                                    onKeyDown={e => e.key === 'Enter' && handleCreateFolder()}
-                                />
-                                <button onClick={handleCreateFolder} className={styles.actionBtn}><Check size={14} /></button>
-                                <button onClick={() => setIsCreatingFolder(false)} className={styles.actionBtn}><X size={14} /></button>
-                            </div>
-                        )
+                        <button onClick={() => setIsCreateModalOpen(true)} className={styles.createBtn}>
+                            <FolderPlus size={18} /> New Folder
+                        </button>
+                    )}
+                    {currentFolder && (
+                        <button onClick={() => setIsCreateModalOpen(true)} className={styles.createBtn}>
+                            <FolderPlus size={18} /> New Folder
+                        </button>
                     )}
                 </div>
 
@@ -601,6 +623,15 @@ export default function MyNotes() {
                 title={confirmModal.title}
                 message={confirmModal.message}
                 isDanger={confirmModal.isDanger}
+            />
+
+            <CreateFolderModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onCreate={handleCreateFolder}
+                currentLocationName={currentFolder ? currentFolder.name : "Home (General Notes)"}
+                availableFiles={visibleNotes}
+                availableFolders={visibleFolders}
             />
         </section >
     );
