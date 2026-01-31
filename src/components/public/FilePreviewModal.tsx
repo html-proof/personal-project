@@ -305,17 +305,20 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                     )}
 
                     {isPdf && (
-                        <iframe
-                            src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.fileUrl)}&embedded=true`}
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                                border: "none",
-                                background: "white",
-                                borderRadius: "8px",
-                                boxShadow: "0 20px 50px rgba(0,0,0,0.5)"
-                            }}
-                        />
+                        <div style={{ width: "100%", height: "100%", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+                            <iframe
+                                src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.fileUrl)}&embedded=true`}
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    border: "none",
+                                    background: "white",
+                                    borderRadius: "8px",
+                                    boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+                                    display: "block"
+                                }}
+                            />
+                        </div>
                     )}
 
                     {isOfficeDoc && (
