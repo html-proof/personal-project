@@ -1,4 +1,5 @@
-import type { NextConfig } from "next";
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
@@ -6,13 +7,14 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
   swcMinify: true,
-  disable: false, // Default: process.env.NODE_ENV === "development"
+  disable: false,
   workboxOptions: {
     disableDevLogs: true,
   },
 });
 
-const nextConfig: any = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -21,4 +23,4 @@ const nextConfig: any = {
   },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;
