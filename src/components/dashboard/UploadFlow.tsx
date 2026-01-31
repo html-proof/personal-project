@@ -331,7 +331,18 @@ export default function UploadFlow() {
                         <option value="">Select Semester</option>
                         {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
+                </div>
 
+                <div className={styles.grid} style={{ marginTop: "1rem" }}>
+                    <select
+                        value={selectedSub}
+                        onChange={(e) => { setSelectedSub(e.target.value); setSelectedFolder(""); }}
+                        className={styles.select}
+                        disabled={!selectedSem}
+                    >
+                        <option value="">Select Subject</option>
+                        {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
                 </div>
             </div>
 
