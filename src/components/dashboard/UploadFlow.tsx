@@ -11,7 +11,7 @@ import {
     createFolder,
     createNote
 } from "@/lib/firebase/firestore";
-import { FolderPlus } from "lucide-react";
+import { FolderPlus, Folder } from "lucide-react";
 import { uploadFile } from "@/lib/supabase/storage";
 import { useAuth } from "@/lib/firebase/auth";
 import { useToast } from "@/context/ToastContext";
@@ -171,7 +171,12 @@ export default function UploadFlow() {
         }
     };
 
-
+    const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files);
+            addFiles(newFiles);
+        }
+    };
 
     const removeFile = (index: number) => {
         setFiles(prev => prev.filter((_, i) => i !== index));
@@ -381,18 +386,29 @@ export default function UploadFlow() {
                     </p>
                 </div>
 
-                <div style={{ marginBottom: "1.5rem" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
                     <div
                         className={styles.uploadOption}
                         onClick={() => document.getElementById("fileInput")?.click()}
                         onMouseEnter={e => e.currentTarget.style.borderColor = "var(--primary)"}
                         onMouseLeave={e => e.currentTarget.style.borderColor = "#cbd5e1"}
-                        style={{ width: "100%", maxWidth: "100%" }}
                     >
                         <File size={40} color="var(--primary)" style={{ marginBottom: "1rem" }} />
                         <h4 style={{ fontWeight: 600, marginBottom: "0.5rem", color: "var(--text-main)" }}>Upload Files</h4>
                         <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>PDFs, Videos, Images</p>
                         <button className="btn btn-primary" style={{ pointerEvents: "none" }}>Select Files</button>
+                    </div>
+
+                    <div
+                        className={styles.uploadOption}
+                        onClick={() => document.getElementById("folderInput")?.click()}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = "var(--primary)"}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = "#cbd5e1"}
+                    >
+                        <FolderPlus size={40} color="#a855f7" style={{ marginBottom: "1rem" }} />
+                        <h4 style={{ fontWeight: 600, marginBottom: "0.5rem", color: "var(--text-main)" }}>Upload Entire Folder</h4>
+                        <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Keeps nested structure</p>
+                        <button className="btn btn-outline" style={{ pointerEvents: "none" }}>Select Folder</button>
                     </div>
                 </div>
 
@@ -403,7 +419,14 @@ export default function UploadFlow() {
                     multiple
                     onChange={handleFileSelect}
                 />
-
+                <input
+                    type="file"
+                    id="folderInput"
+                    hidden
+                    multiple
+                    {...{ webkitdirectory: "", directory: "" } as any}
+                    onChange={handleFolderSelect}
+                />
 
                 <div
                     className={styles.dropzone}
@@ -412,7 +435,7 @@ export default function UploadFlow() {
                     onDrop={handleDrop}
                     style={{ padding: "3rem", background: "var(--surface)", border: "2px dashed var(--border)", borderRadius: "12px", textAlign: "center" }}
                 >
-                    <p style={{ fontWeight: 500, color: "var(--text-muted)" }}>Or visually drag & drop files here</p>
+                    <p style={{ fontWeight: 500, color: "var(--text-muted)" }}>Or visually drag & drop files or folders here</p>
                 </div>
 
                 {files.length > 0 && (
