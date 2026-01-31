@@ -372,13 +372,13 @@ export default function UploadFlow() {
                         className={styles.select}
                         style={{ width: "100%", background: "var(--surface)", color: "var(--text-main)" }}
                     >
-                        <option value="">General Notes (Root)</option>
+                        <option value="">Files (Root)</option>
                         {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                     </select>
                     <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
                         {selectedFolder
                             ? "Files will be uploaded into this folder."
-                            : "Files will be uploaded to 'General Notes' unless they are inside a folder you drag-and-drop."}
+                            : "Files will be uploaded to the root directory unless they are inside a folder you drag-and-drop."}
                     </p>
                 </div>
 

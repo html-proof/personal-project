@@ -106,7 +106,7 @@ export default function MoveItemsModal({ isOpen, onClose, onMove, itemCount }: M
                             disabled={!selectedSub}
                         >
                             <Home size={18} />
-                            <span>General Notes (No Folder)</span>
+                            <span>Main Directory (No Folder)</span>
                         </button>
                         {folders.map(folder => (
                             <button

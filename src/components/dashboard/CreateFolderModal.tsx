@@ -85,7 +85,7 @@ export default function CreateFolderModal({
                         </label>
                         <div style={{ padding: "0.75rem", background: "rgba(34, 197, 94, 0.1)", border: "1px solid rgba(34, 197, 94, 0.2)", borderRadius: "6px", fontSize: "0.9rem", color: "var(--success)", fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Folder size={16} />
-                            {currentLocationName || "Home (General Notes)"}
+                            {currentLocationName || "Home (Files)"}
                         </div>
                     </div>
 

@@ -629,7 +629,7 @@ export default function MyNotes() {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onCreate={handleCreateFolder}
-                currentLocationName={currentFolder ? currentFolder.name : "Home (General Notes)"}
+                currentLocationName={currentFolder ? currentFolder.name : "Home (Files)"}
                 availableFiles={visibleNotes}
                 availableFolders={visibleFolders}
             />

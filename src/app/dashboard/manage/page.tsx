@@ -399,7 +399,7 @@ export default function ManageStructurePage() {
                                 }}
                                 onClick={() => setSelectedFolder(null)}
                             >
-                                <span>General Notes / All</span>
+                                <span>Files / All</span>
                             </li>
                             {folders.map(f => (
                                 <li key={f.id} style={{
@@ -423,7 +423,7 @@ export default function ManageStructurePage() {
                     <div className="card">
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", borderBottom: "1px solid var(--border)", paddingBottom: "0.5rem" }}>
                             <h3>
-                                {selectedFolder ? `Notes in ${selectedFolder.name}` : 'General Notes'}
+                                {selectedFolder ? `Notes in ${selectedFolder.name}` : 'Files'}
                             </h3>
                             {selectedFolder && (
                                 <div style={{ display: "flex", gap: "0.5rem" }}>
