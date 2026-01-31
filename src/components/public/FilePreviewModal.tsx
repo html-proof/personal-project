@@ -281,7 +281,7 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
 
                     {isPdf && (
                         <iframe
-                            src={file.fileUrl}
+                            src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.fileUrl)}&embedded=true`}
                             style={{
                                 width: "100%",
                                 height: "100%",
