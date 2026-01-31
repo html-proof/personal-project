@@ -114,7 +114,7 @@ export default function NotesBrowser() {
         syncState();
     }, [searchParams, departments]);
 
-    // Auto-scroll to content when Subject or General Materials is selected
+    // Auto-scroll to content when Subject is selected
     useEffect(() => {
         if (selectedSub && !loading) {
             const element = document.getElementById("notes-content");
