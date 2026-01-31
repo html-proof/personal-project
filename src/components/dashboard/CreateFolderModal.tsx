@@ -81,10 +81,10 @@ export default function CreateFolderModal({
 
                 <form onSubmit={handleSubmit} className={styles.content}>
                     <div className={styles.inputGroup}>
-                        <label className={styles.label} style={{ color: "#6b7280", fontWeight: 400 }}>
+                        <label className={styles.label} style={{ color: "var(--text-muted)", fontWeight: 400 }}>
                             📍 You are creating a folder in:
                         </label>
-                        <div style={{ padding: "0.75rem", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "6px", fontSize: "0.9rem", color: "#166534", fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ padding: "0.75rem", background: "rgba(34, 197, 94, 0.1)", border: "1px solid rgba(34, 197, 94, 0.2)", borderRadius: "6px", fontSize: "0.9rem", color: "var(--success)", fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Folder size={16} />
                             {currentLocationName || "Home (General Notes)"}
                         </div>
@@ -152,7 +152,7 @@ export default function CreateFolderModal({
                                             </div>
                                         ))}
                                     </div>
-                                    <div style={{ marginTop: "0.5rem", fontSize: "0.75rem", color: "#6b7280", textAlign: "right" }}>
+                                    <div style={{ marginTop: "0.5rem", fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "right" }}>
                                         {selectedFileIds.length + selectedFolderIds.length} item{selectedFileIds.length + selectedFolderIds.length !== 1 ? 's' : ''} selected
                                     </div>
                                 </>
@@ -171,7 +171,7 @@ export default function CreateFolderModal({
                         Create Folder
                     </button>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

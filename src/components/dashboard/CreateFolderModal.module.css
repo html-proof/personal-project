@@ -13,7 +13,7 @@
 }
 
 .modal {
-    background: white;
+    background: var(--surface);
     width: 90%;
     max-width: 500px;
     border-radius: 12px;
@@ -21,6 +21,7 @@
     display: flex;
     flex-direction: column;
     max-height: 85vh;
+    border: 1px solid var(--border);
 }
 
 .header {
@@ -34,14 +35,14 @@
 .title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--text-main);
     margin: 0;
 }
 
 .closeBtn {
     background: none;
     border: none;
-    color: #6b7280;
+    color: var(--text-muted);
     cursor: pointer;
     padding: 0.25rem;
     border-radius: 6px;
@@ -52,8 +53,8 @@
 }
 
 .closeBtn:hover {
-    background: #f3f4f6;
-    color: #111827;
+    background: var(--surface-hover);
+    color: var(--text-main);
 }
 
 .content {
@@ -69,7 +70,7 @@
     display: block;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #374151;
+    color: var(--text-main);
     margin-bottom: 0.5rem;
 }
 
@@ -77,9 +78,10 @@
     width: 100%;
     padding: 0.625rem;
     border-radius: 8px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--border);
     font-size: 0.95rem;
-    color: #111827;
+    color: var(--text-main);
+    background: var(--surface);
     transition: border-color 0.2s;
 }
 
@@ -90,7 +92,7 @@
 }
 
 .fileList {
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border);
     border-radius: 8px;
     max-height: 200px;
     overflow-y: auto;
@@ -101,7 +103,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--border);
     cursor: pointer;
     transition: background 0.2s;
 }
@@ -111,12 +113,12 @@
 }
 
 .fileItem:hover {
-    background: #f9fafb;
+    background: var(--surface-hover);
 }
 
 .itemLabel {
     font-size: 0.875rem;
-    color: #374151;
+    color: var(--text-main);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -173,10 +175,10 @@
 
 .hintText {
     font-size: 0.85rem;
-    color: #6b7280;
+    color: var(--text-muted);
     margin-bottom: 0.75rem;
     line-height: 1.4;
     padding: 0.5rem;
-    background: #f9fafb;
+    background: var(--surface-hover);
     border-radius: 6px;
 }

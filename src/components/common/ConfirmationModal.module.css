@@ -14,18 +14,19 @@
 }
 
 .modal {
-    background: white;
+    background: var(--surface);
     border-radius: 12px;
     width: 90%;
     max-width: 450px;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     overflow: hidden;
     animation: slideUp 0.3s ease-out;
+    border: 1px solid var(--border);
 }
 
 .header {
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -35,22 +36,22 @@
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--text-main);
 }
 
 .closeBtn {
     background: none;
     border: none;
     cursor: pointer;
-    color: #9ca3af;
+    color: var(--text-muted);
     padding: 0.25rem;
     border-radius: 4px;
     transition: all 0.2s;
 }
 
 .closeBtn:hover {
-    background: #f3f4f6;
-    color: #4b5563;
+    background: var(--surface-hover);
+    color: var(--text-main);
 }
 
 .content {
@@ -59,7 +60,7 @@
 
 .message {
     margin: 0;
-    color: #4b5563;
+    color: var(--text-muted);
     line-height: 1.5;
     font-size: 1rem;
     white-space: pre-line;
@@ -67,8 +68,8 @@
 
 .footer {
     padding: 1.25rem 1.5rem;
-    background: #f9fafb;
-    border-top: 1px solid #e5e7eb;
+    background: var(--surface-hover);
+    border-top: 1px solid var(--border);
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
