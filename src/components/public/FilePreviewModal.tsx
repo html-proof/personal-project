@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Download, FileText, ExternalLink } from "lucide-react";
+import { X, Download, FileText, ExternalLink, Share2 } from "lucide-react";
 import { useEffect } from "react";
 
 interface FilePreviewModalProps {
@@ -20,6 +20,27 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
             document.body.style.overflow = "auto";
         };
     }, []);
+
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: file.title,
+                    text: `Check out this material: ${file.title}`,
+                    url: file.fileUrl,
+                });
+            } catch (error) {
+                console.log('Error sharing:', error);
+            }
+        } else {
+            try {
+                await navigator.clipboard.writeText(file.fileUrl);
+                alert("Link copied to clipboard!");
+            } catch (err) {
+                console.error("Failed to copy", err);
+            }
+        }
+    };
 
     const isImage = file.fileType.startsWith("image/");
     const isVideo = file.fileType.startsWith("video/");
@@ -89,6 +110,15 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                     >
                         <Download size={20} />
                     </a>
+                    <button
+                        onClick={handleShare}
+                        style={{ background: "none", border: "none", color: "white", padding: "0.5rem", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
+                        title="Share"
+                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                        <Share2 size={20} />
+                    </button>
                     <button
                         onClick={onClose}
                         style={{ background: "none", border: "none", color: "white", padding: "0.5rem", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
