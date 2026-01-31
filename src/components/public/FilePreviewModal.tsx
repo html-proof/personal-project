@@ -1,7 +1,7 @@
 "use client";
 
 import { X, Download, FileText, Printer, Share2 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface FilePreviewModalProps {
     file: {
@@ -13,6 +13,8 @@ interface FilePreviewModalProps {
 }
 
 export default function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
+    const [numPages, setNumPages] = useState<number | null>(null);
+
     // Sync onClose callback to ref
     const onCloseRef = useRef(onClose);
     useEffect(() => {
@@ -305,19 +307,28 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                     )}
 
                     {isPdf && (
-                        <div style={{ width: "100%", height: "100%", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
-                            <iframe
-                                src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.fileUrl)}&embedded=true`}
+                        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
+                            <object
+                                data={file.fileUrl}
+                                type="application/pdf"
                                 style={{
                                     width: "100%",
                                     height: "100%",
                                     border: "none",
-                                    background: "white",
                                     borderRadius: "8px",
-                                    boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
-                                    display: "block"
+                                    boxShadow: "0 20px 50px rgba(0,0,0,0.5)"
                                 }}
-                            />
+                            >
+                                <embed
+                                    src={file.fileUrl}
+                                    type="application/pdf"
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        border: "none"
+                                    }}
+                                />
+                            </object>
                         </div>
                     )}
 
