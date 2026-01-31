@@ -35,7 +35,6 @@ import { ToastProvider } from "@/context/ToastContext";
 // import InstallPrompt from "@/components/common/InstallPrompt";
 
 import BackgroundAnimator from "@/components/layout/BackgroundAnimator";
-import ChatBot from "@/components/public/ChatBot";
 
 export default function RootLayout({
     children,
@@ -62,7 +61,6 @@ export default function RootLayout({
             </head>
             <body className={inter.className}>
                 <BackgroundAnimator />
-                <ChatBot />
                 <AmpAutoAds type="adsense"
                     data-ad-client="ca-pub-6253589071371136">
                 </AmpAutoAds>
