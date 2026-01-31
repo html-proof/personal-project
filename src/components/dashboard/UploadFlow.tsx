@@ -204,7 +204,7 @@ export default function UploadFlow() {
     };
 
     const handleSubmit = async () => {
-        if (!selectedDept || !selectedSem || files.length === 0 || !user) return;
+        if (!selectedDept || !selectedSem || !selectedSub || files.length === 0 || !user) return;
 
         setUploading(true);
         const newProgress: any = {};
