@@ -24,7 +24,10 @@ const FOLDERS = "folders";
 export const getDepartments = async () => {
     const q = query(collection(db, DEPARTMENTS), orderBy("name"));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Client-side sort with numeric option
+    return snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a: any, b: any) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true }));
 };
 
 export const createDepartment = (name: string) =>
@@ -42,7 +45,7 @@ export const getBatches = async (departmentId: string) => {
     // Client-side sort to avoid composite index requirement
     return snapshot.docs
         .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a: any, b: any) => (a.name || "").localeCompare(b.name || ""));
+        .sort((a: any, b: any) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true }));
 };
 
 export const createBatch = (departmentId: string, name: string) =>
@@ -58,7 +61,7 @@ export const getSemesters = async (batchId: string) => {
     const q = query(collection(db, SEMESTERS), where("batchId", "==", batchId));
     const snapshot = await getDocs(q);
     // Sort manually or add composite index
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => a.name.localeCompare(b.name));
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 };
 
 export const createSemester = (batchId: string, name: string) =>
@@ -73,7 +76,7 @@ export const deleteSemester = (id: string) => deleteDoc(doc(db, SEMESTERS, id));
 export const getSubjects = async (semesterId: string) => {
     const q = query(collection(db, SUBJECTS), where("semesterId", "==", semesterId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => a.name.localeCompare(b.name));
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 };
 
 export const createSubject = (semesterId: string, name: string) =>
@@ -90,7 +93,7 @@ export const getFolders = async (subjectId: string) => {
     const snapshot = await getDocs(q);
     return snapshot.docs
         .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a: any, b: any) => (a.name || "").localeCompare(b.name || ""));
+        .sort((a: any, b: any) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true }));
 };
 
 export const createFolder = (data: any) =>
