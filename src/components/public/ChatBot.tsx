@@ -37,6 +37,10 @@ export default function ChatBot() {
         setInput('');
         setIsLoading(true);
 
+        // Add empty assistant message that will be filled with streaming response
+        const assistantMessageIndex = messages.length + 1;
+        setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
@@ -53,18 +57,63 @@ export default function ChatBot() {
                 throw new Error('Failed to get response');
             }
 
-            const data = await response.json();
-            const assistantMessage: Message = {
-                role: 'assistant',
-                content: data.response
-            };
-            setMessages(prev => [...prev, assistantMessage]);
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder();
+
+            if (!reader) {
+                throw new Error('No response body');
+            }
+
+            let accumulatedText = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+
+                            if (data.error) {
+                                throw new Error(data.error);
+                            }
+
+                            if (data.text) {
+                                accumulatedText += data.text;
+                                setMessages(prev => {
+                                    const newMessages = [...prev];
+                                    newMessages[assistantMessageIndex] = {
+                                        role: 'assistant',
+                                        content: accumulatedText
+                                    };
+                                    return newMessages;
+                                });
+                            }
+
+                            if (data.done) {
+                                break;
+                            }
+                        } catch (e) {
+                            // Ignore JSON parse errors for incomplete chunks
+                        }
+                    }
+                }
+            }
+
         } catch (error) {
             console.error('Chat error:', error);
-            setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: 'Sorry, I encountered an error. Please try again.'
-            }]);
+            setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[assistantMessageIndex] = {
+                    role: 'assistant',
+                    content: 'Sorry, I encountered an error. Please try again.'
+                };
+                return newMessages;
+            });
         } finally {
             setIsLoading(false);
         }
