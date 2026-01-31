@@ -393,11 +393,11 @@ export default function NotesBrowser() {
                             )}
                         </div>
                     ) : (
-                        <div className={styles.grid}>
-                            {/* Semesters */}
-                            <div className={`card ${!selectedDept ? styles.disabled : ''}`}>
-                                <h3 className={styles.colTitle}>Semesters</h3>
-                                {selectedDept && (
+                        <>
+                            {/* Semesters - Only show when department is selected */}
+                            {selectedDept && (
+                                <div className="card" style={{ marginBottom: "2rem" }}>
+                                    <h3 className={styles.colTitle}>Semesters</h3>
                                     <ul className={styles.list}>
                                         {semesters.length === 0 && <li className={styles.empty}>No semesters found.</li>}
                                         {semesters.map(s => (
@@ -410,14 +410,13 @@ export default function NotesBrowser() {
                                             </li>
                                         ))}
                                     </ul>
-                                )}
-                                {!selectedDept && <p className={styles.hint}>Select a department first.</p>}
-                            </div>
+                                </div>
+                            )}
 
-                            {/* Subjects */}
-                            <div className={`card ${!selectedSem ? styles.disabled : ''}`}>
-                                <h3 className={styles.colTitle}>Subjects</h3>
-                                {selectedSem && (
+                            {/* Subjects - Only show when semester is selected */}
+                            {selectedSem && (
+                                <div className="card" style={{ marginBottom: "2rem" }}>
+                                    <h3 className={styles.colTitle}>Subjects</h3>
                                     <ul className={styles.list}>
                                         {subjects.length === 0 && <li className={styles.empty}>No subjects found.</li>}
                                         {subjects.map(s => (
@@ -430,10 +429,9 @@ export default function NotesBrowser() {
                                             </li>
                                         ))}
                                     </ul>
-                                )}
-                                {!selectedSem && <p className={styles.hint}>Select a semester first.</p>}
-                            </div>
-                        </div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </>
             )}
