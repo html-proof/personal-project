@@ -257,6 +257,29 @@ export default function NotesBrowser() {
         );
     };
 
+    const handleDownload = async (url: string, filename: string) => {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Network response was not ok");
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = filename; // This forces download with the specific name
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error("Download failed:", error);
+            // Fallback: just open in new tab if programmatic download fails (e.g. CORS)
+            window.open(url, '_blank');
+        }
+    };
+
     return (
         <div className={styles.browser}>
             {/* Header Area with Search on the Right */}
@@ -369,7 +392,7 @@ export default function NotesBrowser() {
                                                 <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
                                                 <div className={styles.actions}>
                                                     <button onClick={(e) => { e.stopPropagation(); setPreviewNote(note); }} className={styles.btn} title="View"><Eye size={18} /></button>
-                                                    <a href={note.fileUrl} download target="_blank" rel="noopener noreferrer" className={styles.btn} title="Download" onClick={(e) => e.stopPropagation()}><Download size={18} /></a>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDownload(note.fileUrl, note.title); }} className={styles.btn} title="Download"><Download size={18} /></button>
                                                     <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
                                                 </div>
                                             </div>
@@ -524,7 +547,7 @@ export default function NotesBrowser() {
                                                     <p className={styles.noteMeta}>{new Date(note.createdAt?.seconds * 1000).toLocaleDateString()}</p>
                                                     <div className={styles.actions}>
                                                         <button onClick={(e) => { e.stopPropagation(); setPreviewNote(note); }} className={styles.btn} title="View"><Eye size={18} /></button>
-                                                        <a href={note.fileUrl} download target="_blank" rel="noopener noreferrer" className={styles.btn} title="Download" onClick={(e) => e.stopPropagation()}><Download size={18} /></a>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleDownload(note.fileUrl, note.title); }} className={styles.btn} title="Download"><Download size={18} /></button>
                                                         <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
                                                     </div>
                                                 </div>
