@@ -1,7 +1,7 @@
 "use client";
 
 import { X, Download, FileText, Printer, Share2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface FilePreviewModalProps {
     file: {
@@ -13,11 +13,36 @@ interface FilePreviewModalProps {
 }
 
 export default function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
-    // Prevent scrolling on body when modal is open
+    // Sync onClose callback to ref
+    const onCloseRef = useRef(onClose);
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
+
+    // Handle Back button and scroll locking
     useEffect(() => {
         document.body.style.overflow = "hidden";
+
+        // Push state to history to enable Back button closing
+        const state = { filePreviewModal: true };
+        window.history.pushState(state, "");
+
+        const handlePopState = () => {
+            // User pressed Back, close modal
+            if (onCloseRef.current) onCloseRef.current();
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
         return () => {
             document.body.style.overflow = "auto";
+            window.removeEventListener('popstate', handlePopState);
+
+            // If manual close (not back button), restore history if we pushed it
+            const currentState = window.history.state;
+            if (currentState && currentState.filePreviewModal) {
+                window.history.back();
+            }
         };
     }, []);
 
