@@ -74,17 +74,34 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
             const blobUrl = window.URL.createObjectURL(blob);
 
             if (isImage) {
-                const printWindow = window.open('', '_blank');
-                if (printWindow) {
-                    printWindow.document.write(`
+                // Use iframe for image to avoid popout
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                document.body.appendChild(iframe);
+
+                const doc = iframe.contentWindow?.document;
+                if (doc) {
+                    doc.open();
+                    doc.write(`
                         <html>
                             <head><title>Print ${file.title}</title></head>
                             <body style="margin:0; display:flex; justify-content:center; align-items:center;">
-                                <img src="${blobUrl}" style="max-width:100%; max-height:100vh;" onload="window.print(); window.close();" />
+                                <img src="${blobUrl}" style="max-width:100%; max-height:100vh;" onload="window.print();" />
                             </body>
                         </html>
                     `);
-                    printWindow.document.close();
+                    doc.close();
+
+                    // Cleanup after print dialog closes (approximate) or simple timeout
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                        window.URL.revokeObjectURL(blobUrl);
+                    }, 5000);
                 }
             } else if (isPdf) {
                 // For PDF, use iframe with blob url
