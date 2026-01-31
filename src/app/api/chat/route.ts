@@ -1,7 +1,7 @@
-import { GoogleGenAI, ThinkingLevel } from '@google/genai';
+import OpenAI from 'openai';
 import { NextRequest } from 'next/server';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 export async function POST(request: NextRequest) {
     const encoder = new TextEncoder();
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
         const { message, history } = await request.json();
 
         console.log('Chat API called with message:', message?.substring(0, 50));
-        console.log('API Key exists:', !!GEMINI_API_KEY);
+        console.log('API Key exists:', !!OPENAI_API_KEY);
 
         if (!message) {
             return new Response(
@@ -19,72 +19,61 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (!GEMINI_API_KEY) {
-            console.error('GEMINI_API_KEY not found in environment variables');
+        if (!OPENAI_API_KEY) {
+            console.error('OPENAI_API_KEY not found in environment variables');
             return new Response(
-                JSON.stringify({ error: 'API key not configured. Please add GEMINI_API_KEY to your environment variables.' }),
+                JSON.stringify({ error: 'API key not configured. Please add OPENAI_API_KEY to your environment variables.' }),
                 { status: 500, headers: { 'Content-Type': 'application/json' } }
             );
         }
 
-        // Initialize Google GenAI
-        const ai = new GoogleGenAI({
-            apiKey: GEMINI_API_KEY,
+        // Initialize OpenAI
+        const openai = new OpenAI({
+            apiKey: OPENAI_API_KEY,
         });
 
-        // Configure tools and thinking
-        const tools = [
+        // Build conversation messages
+        const messages = [
             {
-                googleSearch: {}
-            },
-        ];
-
-        const config = {
-            thinkingConfig: {
-                thinkingLevel: ThinkingLevel.HIGH,
-            },
-            tools,
-            systemInstruction: `You are a helpful AI study assistant for College of Engineering Poonjar e-learning platform. 
+                role: 'system' as const,
+                content: `You are a helpful AI study assistant for College of Engineering Poonjar e-learning platform. 
 Your role is to help students with their studies by:
 - Answering questions about their course materials
 - Explaining concepts in simple terms
 - Providing study tips and guidance
 - Helping with homework and assignments (guide them, don't just give answers)
-- Using Google Search when you need current information or to verify facts
 
-Be friendly, encouraging, and educational. Keep responses concise and easy to understand.`,
-        };
-
-        // Build conversation contents
-        const contents = [
+Be friendly, encouraging, and educational. Keep responses concise and easy to understand.`
+            },
             ...(history || []).map((msg: { role: string; content: string }) => ({
-                role: msg.role === 'user' ? 'user' : 'model',
-                parts: [{ text: msg.content }]
+                role: msg.role === 'user' ? 'user' as const : 'assistant' as const,
+                content: msg.content
             })),
             {
                 role: 'user' as const,
-                parts: [{ text: message }]
+                content: message
             }
         ];
 
-        console.log('Calling Gemini API with streaming...');
+        console.log('Calling OpenAI API with streaming...');
 
         // Create streaming response
         const stream = new ReadableStream({
             async start(controller) {
                 try {
-                    const response = await ai.models.generateContentStream({
-                        model: 'gemini-2.0-flash-exp',
-                        config,
-                        contents,
+                    const response = await openai.chat.completions.create({
+                        model: 'gpt-4o-mini',
+                        messages,
+                        stream: true,
                     });
 
                     let fullResponse = '';
 
                     for await (const chunk of response) {
-                        if (chunk.text) {
-                            fullResponse += chunk.text;
-                            const data = JSON.stringify({ text: chunk.text, done: false });
+                        const content = chunk.choices[0]?.delta?.content;
+                        if (content) {
+                            fullResponse += content;
+                            const data = JSON.stringify({ text: content, done: false });
                             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
                         }
                     }
