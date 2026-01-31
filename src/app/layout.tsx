@@ -34,6 +34,8 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { ToastProvider } from "@/context/ToastContext";
 // import InstallPrompt from "@/components/common/InstallPrompt";
 
+import BackgroundAnimator from "@/components/layout/BackgroundAnimator";
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -58,6 +60,7 @@ export default function RootLayout({
                 />
             </head>
             <body className={inter.className}>
+                <BackgroundAnimator />
                 <AmpAutoAds type="adsense"
                     data-ad-client="ca-pub-6253589071371136">
                 </AmpAutoAds>
