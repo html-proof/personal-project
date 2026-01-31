@@ -234,12 +234,24 @@ export default function NotesBrowser() {
         setSearchResults([]);
     };
 
-    const handleShare = async (url: string) => {
-        try {
-            await navigator.clipboard.writeText(url);
-            alert("Link copied to clipboard!");
-        } catch (err) {
-            console.error("Failed to copy", err);
+    const handleShare = async (url: string, title: string) => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: title,
+                    text: `Check out this material: ${title}`,
+                    url: url,
+                });
+            } catch (error) {
+                console.log('Error sharing:', error);
+            }
+        } else {
+            try {
+                await navigator.clipboard.writeText(url);
+                alert("Link copied to clipboard!");
+            } catch (err) {
+                console.error("Failed to copy", err);
+            }
         }
     };
 
@@ -393,7 +405,7 @@ export default function NotesBrowser() {
                                                 <div className={styles.actions}>
                                                     <button onClick={(e) => { e.stopPropagation(); setPreviewNote(note); }} className={styles.btn} title="View"><Eye size={18} /></button>
                                                     <button onClick={(e) => { e.stopPropagation(); handleDownload(note.fileUrl, note.title); }} className={styles.btn} title="Download"><Download size={18} /></button>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl, note.title); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -548,7 +560,7 @@ export default function NotesBrowser() {
                                                     <div className={styles.actions}>
                                                         <button onClick={(e) => { e.stopPropagation(); setPreviewNote(note); }} className={styles.btn} title="View"><Eye size={18} /></button>
                                                         <button onClick={(e) => { e.stopPropagation(); handleDownload(note.fileUrl, note.title); }} className={styles.btn} title="Download"><Download size={18} /></button>
-                                                        <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleShare(note.fileUrl, note.title); }} className={styles.btn} title="Share Link"><Share2 size={18} /></button>
                                                     </div>
                                                 </div>
                                             </div>
