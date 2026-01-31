@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Download, FileText, ExternalLink, Share2 } from "lucide-react";
+import { X, Download, FileText, Printer, Share2 } from "lucide-react";
 import { useEffect } from "react";
 
 interface FilePreviewModalProps {
@@ -39,6 +39,46 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
             } catch (err) {
                 console.error("Failed to copy", err);
             }
+        }
+    };
+
+    const handlePrint = () => {
+        if (isImage) {
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.document.write(`
+                    <html>
+                        <head><title>Print ${file.title}</title></head>
+                        <body style="margin:0; display:flex; justify-content:center; align-items:center;">
+                            <img src="${file.fileUrl}" style="max-width:100%; max-height:100vh;" onload="window.print(); window.close();" />
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            }
+        } else {
+            // For PDF and others, we try to create an iframe and print it
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            iframe.src = file.fileUrl;
+
+            iframe.onload = () => {
+                try {
+                    iframe.contentWindow?.print();
+                } catch (e) {
+                    console.error("Printing failed", e);
+                    alert("Cannot print this file type directly. Please download it first.");
+                } finally {
+                    // Cleanup usually tricky, but we can remove it after a delay
+                    setTimeout(() => document.body.removeChild(iframe), 2000);
+                }
+            };
+            document.body.appendChild(iframe);
         }
     };
 
@@ -87,18 +127,16 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                     <span style={{ fontWeight: 500, fontSize: "1.1rem" }}>{file.title}</span>
                 </div>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <a
-                        href={file.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    <button
+                        onClick={handlePrint}
                         className="btn-icon"
-                        title="Open in new tab"
-                        style={{ color: "white", padding: "0.5rem", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
+                        title="Print"
+                        style={{ background: "none", border: "none", color: "white", padding: "0.5rem", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s", cursor: "pointer" }}
                         onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
                         onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                     >
-                        <ExternalLink size={20} />
-                    </a>
+                        <Printer size={20} />
+                    </button>
                     <a
                         href={file.fileUrl}
                         download
