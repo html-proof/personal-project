@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import { NextRequest } from 'next/server';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
         const config = {
             thinkingConfig: {
-                thinkingLevel: 'HIGH' as const,
+                thinkingLevel: ThinkingLevel.HIGH,
             },
             tools,
             systemInstruction: `You are a helpful AI study assistant for College of Engineering Poonjar e-learning platform. 
