@@ -271,7 +271,7 @@ export default function NotesBrowser() {
         <div className={styles.browser}>
             {/* Header Area with Search on the Right */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
-                <h2 style={{ fontSize: "2rem", color: "var(--text-main)", margin: 0 }}>Browse Materials</h2>
+                <h2 style={{ fontSize: "2rem", color: "var(--text-main)", margin: 0 }}>Browse Files</h2>
 
                 {selectedDept && (
                     <div className="search-container" style={{ flex: "1 1 300px", maxWidth: "400px" }}>
@@ -446,7 +446,7 @@ export default function NotesBrowser() {
                             </button>
                         )}
                         <h3 className={styles.notesTitle} style={{ margin: 0 }}>
-                            {selectedFolder ? selectedFolder.name : `Materials for ${selectedSub.name}`}
+                            {selectedFolder ? selectedFolder.name : selectedSub.name}
                         </h3>
                     </div>
 
@@ -493,7 +493,7 @@ export default function NotesBrowser() {
                             <div>
                                 {filteredNotes.length === 0 ? (
                                     <p className="text-muted" style={{ fontStyle: "italic" }}>
-                                        {selectedFolder ? "This folder is empty." : (folders.length === 0 ? "No materials uploaded yet." : "No additional files in this subject.")}
+                                        {selectedFolder ? "This folder is empty." : (folders.length === 0 ? "No files uploaded yet." : "No files in the root of this subject.")}
                                     </p>
                                 ) : (
                                     <div className={styles.notesGrid}>
