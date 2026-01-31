@@ -42,43 +42,87 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
         }
     };
 
-    const handlePrint = () => {
-        if (isImage) {
-            const printWindow = window.open('', '_blank');
-            if (printWindow) {
-                printWindow.document.write(`
-                    <html>
-                        <head><title>Print ${file.title}</title></head>
-                        <body style="margin:0; display:flex; justify-content:center; align-items:center;">
-                            <img src="${file.fileUrl}" style="max-width:100%; max-height:100vh;" onload="window.print(); window.close();" />
-                        </body>
-                    </html>
-                `);
-                printWindow.document.close();
-            }
-        } else {
-            // For PDF and others, we try to create an iframe and print it
-            const iframe = document.createElement('iframe');
-            iframe.style.position = 'fixed';
-            iframe.style.right = '0';
-            iframe.style.bottom = '0';
-            iframe.style.width = '0';
-            iframe.style.height = '0';
-            iframe.style.border = '0';
-            iframe.src = file.fileUrl;
+    const handleDownload = async () => {
+        try {
+            const response = await fetch(file.fileUrl);
+            if (!response.ok) throw new Error("Network response was not ok");
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
 
-            iframe.onload = () => {
-                try {
-                    iframe.contentWindow?.print();
-                } catch (e) {
-                    console.error("Printing failed", e);
-                    alert("Cannot print this file type directly. Please download it first.");
-                } finally {
-                    // Cleanup usually tricky, but we can remove it after a delay
-                    setTimeout(() => document.body.removeChild(iframe), 2000);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = file.title;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error("Download failed:", error);
+            // Fallback
+            window.open(file.fileUrl, '_blank');
+        }
+    };
+
+    const handlePrint = async () => {
+        try {
+            // content fetch logic similar to download to ensure we have the data
+            const response = await fetch(file.fileUrl);
+            if (!response.ok) throw new Error("Network response was not ok");
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            if (isImage) {
+                const printWindow = window.open('', '_blank');
+                if (printWindow) {
+                    printWindow.document.write(`
+                        <html>
+                            <head><title>Print ${file.title}</title></head>
+                            <body style="margin:0; display:flex; justify-content:center; align-items:center;">
+                                <img src="${blobUrl}" style="max-width:100%; max-height:100vh;" onload="window.print(); window.close();" />
+                            </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
                 }
-            };
-            document.body.appendChild(iframe);
+            } else if (isPdf) {
+                // For PDF, use iframe with blob url
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                iframe.src = blobUrl;
+
+                iframe.onload = () => {
+                    try {
+                        iframe.contentWindow?.print();
+                    } catch (e) {
+                        console.error("Printing failed", e);
+                        // Fallback to window print if iframe print fails
+                        window.print();
+                    } finally {
+                        // Cleanup
+                        setTimeout(() => {
+                            document.body.removeChild(iframe);
+                            window.URL.revokeObjectURL(blobUrl);
+                        }, 2000);
+                    }
+                };
+                document.body.appendChild(iframe);
+            } else {
+                // For office docs or others, we can't print the blob directly via iframe easily.
+                // Fallback: Print the current window (the preview modal)
+                window.print();
+                window.URL.revokeObjectURL(blobUrl);
+            }
+        } catch (error) {
+            console.error("Printing failed:", error);
+            // Last resort fallback
+            window.print();
         }
     };
 
@@ -137,17 +181,16 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                     >
                         <Printer size={20} />
                     </button>
-                    <a
-                        href={file.fileUrl}
-                        download
+                    <button
+                        onClick={handleDownload}
                         className="btn-icon"
                         title="Download"
-                        style={{ color: "white", padding: "0.5rem", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
+                        style={{ background: "none", border: "none", color: "white", padding: "0.5rem", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s", cursor: "pointer" }}
                         onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
                         onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                     >
                         <Download size={20} />
-                    </a>
+                    </button>
                     <button
                         onClick={handleShare}
                         style={{ background: "none", border: "none", color: "white", padding: "0.5rem", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
@@ -246,9 +289,9 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                             <p style={{ color: "var(--text-muted)", marginBottom: "2rem" }}>
                                 This file type cannot be previewed directly.
                             </p>
-                            <a href={file.fileUrl} download className="btn btn-primary">
+                            <button onClick={handleDownload} className="btn btn-primary">
                                 Download File
-                            </a>
+                            </button>
                         </div>
                     )}
                 </div>
