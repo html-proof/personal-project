@@ -36,8 +36,8 @@ export default function UploadFlow() {
     const [selectedSub, setSelectedSub] = useState("");
     const [selectedFolder, setSelectedFolder] = useState("");
 
-    // Simplified selection check (Dept -> Sem -> Sub)
-    const isSelectionComplete = selectedDept && selectedSem;
+    // Selection check: Dept -> Sem -> Sub (all required)
+    const isSelectionComplete = selectedDept && selectedSem && selectedSub;
 
     const [folders, setFolders] = useState<any[]>([]);
     const [notes, setNotes] = useState<any[]>([]);
@@ -108,7 +108,7 @@ export default function UploadFlow() {
         try {
             // 1. Create the folder
             const ref = await createFolder({
-                subjectId: selectedSub || "general",
+                subjectId: selectedSub,
                 semesterId: selectedSem,
                 batchId: null, // Batch removed
                 departmentId: selectedDept,
@@ -231,7 +231,7 @@ export default function UploadFlow() {
                     folderMap.set(folderName, existing.id);
                 } else {
                     const ref = await createFolder({
-                        subjectId: selectedSub || "general",
+                        subjectId: selectedSub,
                         semesterId: selectedSem,
                         batchId: null, // Batch removed
                         departmentId: selectedDept,
@@ -268,7 +268,7 @@ export default function UploadFlow() {
                         departmentId: selectedDept,
                         batchId: null, // Batch removed
                         semesterId: selectedSem,
-                        subjectId: selectedSub || "general",
+                        subjectId: selectedSub,
                         folderId: targetFolderId,
                         title: file.name.replace(/\.[^/.]+$/, ""),
                         fileUrl: url,
@@ -341,7 +341,7 @@ export default function UploadFlow() {
                 transition: "opacity 0.3s"
             }}>
 
-                {!isSelectionComplete && <p style={{ color: "var(--primary)", fontWeight: 500, marginBottom: "1rem" }}>Please select Department and Semester to enable upload options.</p>}
+                {!isSelectionComplete && <p style={{ color: "var(--primary)", fontWeight: 500, marginBottom: "1rem" }}>Please select Department, Semester, and Subject to enable upload options.</p>}
 
                 <div style={{ marginBottom: "1.5rem", padding: "1rem", background: "var(--surface)", borderRadius: "8px", border: "1px solid var(--border)" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>

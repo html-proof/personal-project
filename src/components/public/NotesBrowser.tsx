@@ -66,8 +66,7 @@ export default function NotesBrowser() {
                 if (sem) {
                     setSelectedSem(sem);
                     const realSubjects = await getSubjects(sem.id);
-                    const generalSubject = { id: "general", name: "General Materials" };
-                    setSubjects([...realSubjects, generalSubject]);
+                    setSubjects(realSubjects);
                 }
             } else if (!semId && selectedSem) {
                 setSelectedSem(null);
@@ -77,10 +76,7 @@ export default function NotesBrowser() {
 
             // Sync Subject (Load Content)
             if (subId && selectedSub?.id !== subId) {
-                // If "general", we fabricate the object since it won't be in DB
-                let sub = subId === "general"
-                    ? { id: "general", name: "General Materials" }
-                    : await getSubjects(semId!).then(res => res.find(s => s.id === subId));
+                const sub = await getSubjects(semId!).then(res => res.find(s => s.id === subId));
 
                 if (sub) {
                     setSelectedSub(sub);
@@ -450,7 +446,7 @@ export default function NotesBrowser() {
                             </button>
                         )}
                         <h3 className={styles.notesTitle} style={{ margin: 0 }}>
-                            {selectedFolder ? selectedFolder.name : (selectedSub.name === "General Materials" ? "FILES" : `Materials for ${selectedSub.name}`)}
+                            {selectedFolder ? selectedFolder.name : `Materials for ${selectedSub.name}`}
                         </h3>
                     </div>
 
