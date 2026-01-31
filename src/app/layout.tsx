@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
@@ -14,7 +14,6 @@ export const metadata: Metadata = {
         apple: "/icon-192.png",
     },
     manifest: "/manifest.json",
-    themeColor: "#2563eb",
     appleWebApp: {
         capable: true,
         statusBarStyle: "default",
@@ -23,6 +22,10 @@ export const metadata: Metadata = {
     other: {
         "google-adsense-account": "ca-pub-6253589071371136",
     },
+};
+
+export const viewport: Viewport = {
+    themeColor: "#2563eb",
 };
 
 import DisableDevTools from "@/components/common/DisableDevTools";
