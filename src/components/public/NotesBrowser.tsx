@@ -326,6 +326,60 @@ export default function NotesBrowser() {
                 )}
             </div>
 
+            {/* Breadcrumb Navigation - Shows the current path (Dept > Sem > Sub > Folder) */}
+            {selectedDept && !isSearching && (
+                <div className={styles.breadcrumbs}>
+                    <button
+                        onClick={() => updateUrl({ dept: null, sem: null, sub: null, folder: null })}
+                        className={styles.breadcrumbItem}
+                    >
+                        Home
+                    </button>
+
+                    <ChevronRight size={14} className={styles.breadcrumbSeparator} />
+
+                    <button
+                        onClick={() => updateUrl({ sem: null, sub: null, folder: null })}
+                        className={`${styles.breadcrumbItem} ${!selectedSem ? styles.breadcrumbActive : ''}`}
+                    >
+                        {selectedDept.name}
+                    </button>
+
+                    {selectedSem && (
+                        <>
+                            <ChevronRight size={14} className={styles.breadcrumbSeparator} />
+                            <button
+                                onClick={() => updateUrl({ sub: null, folder: null })}
+                                className={`${styles.breadcrumbItem} ${!selectedSub ? styles.breadcrumbActive : ''}`}
+                            >
+                                {selectedSem.name}
+                            </button>
+                        </>
+                    )}
+
+                    {selectedSub && (
+                        <>
+                            <ChevronRight size={14} className={styles.breadcrumbSeparator} />
+                            <button
+                                onClick={() => updateUrl({ folder: null })}
+                                className={`${styles.breadcrumbItem} ${!selectedFolder ? styles.breadcrumbActive : ''}`}
+                            >
+                                {selectedSub.name}
+                            </button>
+                        </>
+                    )}
+
+                    {selectedFolder && (
+                        <>
+                            <ChevronRight size={14} className={styles.breadcrumbSeparator} />
+                            <span className={`${styles.breadcrumbItem} ${styles.breadcrumbActive}`}>
+                                {selectedFolder.name}
+                            </span>
+                        </>
+                    )}
+                </div>
+            )}
+
             {/* Drill Down Views */}
             <div className={styles.drillDownContainer}>
 

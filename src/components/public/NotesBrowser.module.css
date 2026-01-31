@@ -168,6 +168,61 @@
 }
 
 /* Drill Down Layout Styles */
+.browseHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+
+.breadcrumbItem {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: inherit;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.breadcrumbItem:hover {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.breadcrumbActive {
+    color: var(--text-main);
+    font-weight: 600;
+    cursor: default;
+    pointer-events: none;
+}
+
+.breadcrumbActive:hover {
+    color: var(--text-main);
+    text-decoration: none;
+}
+
+.breadcrumbSeparator {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
 .drillDownContainer {
     max-width: 800px;
     margin: 0 auto;
