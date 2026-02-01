@@ -40,10 +40,17 @@ export default function PDFViewer({ fileUrl, fileName }: PDFViewerProps) {
             // Dynamically import pdfjs-dist
             const pdfjsLib = await import('pdfjs-dist');
 
-            // Set worker path
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+            // Use unpkg CDN for worker (more reliable than cdnjs)
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
 
-            const loadingTask = pdfjsLib.getDocument(fileUrl);
+            // Configure to handle CORS and various PDF sources
+            const loadingTask = pdfjsLib.getDocument({
+                url: fileUrl,
+                withCredentials: false,
+                isEvalSupported: false,
+                useSystemFonts: true,
+            });
+
             const pdf = await loadingTask.promise;
 
             pdfDocRef.current = pdf;
@@ -52,9 +59,13 @@ export default function PDFViewer({ fileUrl, fileName }: PDFViewerProps) {
             setLoading(false);
 
             renderPage(1);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error loading PDF:', err);
-            setError('Failed to load PDF');
+            // Provide more helpful error message
+            const errorMsg = err?.message?.includes('CORS')
+                ? 'Unable to load PDF due to security restrictions'
+                : 'Failed to load PDF';
+            setError(errorMsg);
             setLoading(false);
         }
     }
@@ -133,7 +144,25 @@ export default function PDFViewer({ fileUrl, fileName }: PDFViewerProps) {
                 textAlign: "center"
             }}>
                 <p>{error}</p>
-                <p style={{ fontSize: "0.9rem", color: "#64748b" }}>Please try downloading the file instead.</p>
+                <p style={{ fontSize: "0.9rem", color: "#64748b" }}>
+                    Unable to display PDF in browser.
+                </p>
+                <a
+                    href={fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                        padding: "0.75rem 1.5rem",
+                        background: "#3b82f6",
+                        color: "white",
+                        borderRadius: "6px",
+                        textDecoration: "none",
+                        fontSize: "0.95rem",
+                        fontWeight: 500
+                    }}
+                >
+                    Open PDF in New Tab
+                </a>
             </div>
         );
     }
