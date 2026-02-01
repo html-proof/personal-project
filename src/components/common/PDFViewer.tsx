@@ -145,7 +145,7 @@ export default function PDFViewer({ fileUrl, fileName }: PDFViewerProps) {
             }}>
                 <p>{error}</p>
                 <p style={{ fontSize: "0.9rem", color: "#64748b" }}>
-                    Unable to display PDF in browser.
+                    Preview not available. Please open the document in a new tab.
                 </p>
                 <a
                     href={fileUrl}
