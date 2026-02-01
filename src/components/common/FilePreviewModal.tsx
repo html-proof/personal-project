@@ -72,7 +72,7 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, fileName, f
                     )}
 
                     {isPDF && (
-                        <iframe src={fileUrl} style={{ width: "100%", height: "100%", border: "none" }} />
+                        <iframe src={fileUrl} title={fileName} style={{ width: "100%", height: "100%", border: "none" }} />
                     )}
 
                     {isOffice && (
