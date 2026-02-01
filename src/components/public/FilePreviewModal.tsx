@@ -2,6 +2,7 @@
 
 import { X, Download, FileText, Printer, Share2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import PDFViewer from "@/components/common/PDFViewer";
 
 interface FilePreviewModalProps {
     file: {
@@ -308,17 +309,7 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
 
                     {isPdf && (
                         <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
-                            <iframe
-                                src={file.fileUrl}
-                                style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    boxShadow: "0 20px 50px rgba(0,0,0,0.5)"
-                                }}
-                                title={file.title}
-                            />
+                            <PDFViewer fileUrl={file.fileUrl} fileName={file.title} />
                         </div>
                     )}
 

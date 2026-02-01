@@ -1,6 +1,7 @@
 "use client";
 
 import { X, ExternalLink, Download } from "lucide-react";
+import PDFViewer from "./PDFViewer";
 
 interface FilePreviewModalProps {
     isOpen: boolean;
@@ -72,7 +73,7 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, fileName, f
                     )}
 
                     {isPDF && (
-                        <iframe src={fileUrl} title={fileName} style={{ width: "100%", height: "100%", border: "none" }} />
+                        <PDFViewer fileUrl={fileUrl} fileName={fileName} />
                     )}
 
                     {isOffice && (
