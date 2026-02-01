@@ -29,9 +29,9 @@ export function useAuth() {
 }
 
 export const signIn = async (email: string, pass: string) => {
-    // if (!isAllowedEmail(email)) {
-    //     throw new Error("ACCESS_DENIED");
-    // }
+    if (!isAllowedEmail(email)) {
+        throw new Error("ACCESS_DENIED");
+    }
     const userCredential = await signInWithEmailAndPassword(auth, email, pass);
 
     if (!userCredential.user.emailVerified) {
