@@ -8,7 +8,9 @@ export const uploadFile = async (file: File, path: string) => {
         .upload(path, file, {
             cacheControl: '3600',
             upsert: false,
-            contentType: file.type
+            contentType: file.type,
+            // Supabase technically handles disposition via download/transform usually, 
+            // but ensuring type is key.
         });
 
     if (error) {

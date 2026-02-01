@@ -1,7 +1,6 @@
 "use client";
 
 import { X, ExternalLink, Download } from "lucide-react";
-import PDFViewer from "./PDFViewer";
 
 interface FilePreviewModalProps {
     isOpen: boolean;
@@ -14,26 +13,25 @@ interface FilePreviewModalProps {
 export default function FilePreviewModal({ isOpen, onClose, fileUrl, fileName, fileType }: FilePreviewModalProps) {
     if (!isOpen) return null;
 
-    const safeFileType = fileType || "";
-    const safeFileName = fileName || "";
+    // 1. Robust File Type Detection
+    // Prefer extension from URL as it's the most reliable source of truth
+    const urlExtension = fileUrl.split('.').pop()?.toLowerCase() || "";
+    const titleExtension = fileName.split('.').pop()?.toLowerCase() || "";
+    const effectiveExtension = urlExtension.length > 1 && urlExtension.length < 5 ? urlExtension : titleExtension;
 
-    const isImage = safeFileType.includes("image") || safeFileName.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i);
-    const isVideo = safeFileType.includes("video") || safeFileName.match(/\.(mp4|webm|ogg|mov)$/i);
-    const isPDF = safeFileType.includes("pdf") || safeFileName.match(/\.pdf$/i);
+    // MIME type check as backup
+    const mimeType = fileType || "";
 
-    // Generic check for any document that isn't media or PDF
-    // Google Viewer supports many formats including .ai, .psd, .dxf, .svg, .eps, .ps, .ttf, .xps, .zip, .rar
-    const isGoogleDocSupported =
-        !isImage &&
-        !isVideo &&
-        !isPDF &&
-        (
-            safeFileType.includes("application/") ||
-            safeFileType.includes("text/") ||
-            safeFileName.match(/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv|odt|ods|odp|ai|psd|dxf|eps|ps|xps|ttf|pages|numbers|key|json|xml|c|cpp|h|java|py|js|ts|html|css|php|rb|go|rs|swift|kt)$/i)
-        );
+    // 2. Strict Category Checks
+    const isImage = mimeType.includes("image") || ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico", "tiff"].includes(effectiveExtension);
+    const isVideo = mimeType.includes("video") || ["mp4", "webm", "ogg", "mov", "avi", "mkv", "wmv"].includes(effectiveExtension);
+    const isPDF = mimeType.includes("pdf") || effectiveExtension === "pdf";
 
-    const showGoogleViewer = isGoogleDocSupported;
+    // 3. Universal Catch-All Strategy
+    // If it's not media (Image/Video) and not PDF (Custom Viewer), 
+    // we send IT ALL to Google Docs Viewer. 
+    // Google Viewer handles Office, Text, Code, Adobe, CAD, and gives a decent fallback for others.
+    const showGoogleViewer = !isImage && !isVideo && !isPDF;
 
     return (
         <div style={{
@@ -75,7 +73,11 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, fileName, f
                     )}
 
                     {isPDF && (
-                        <PDFViewer fileUrl={fileUrl} fileName={fileName} />
+                        <iframe
+                            src={fileUrl}
+                            style={{ width: "100%", height: "100%", border: "none", borderRadius: "8px" }}
+                            title={fileName}
+                        />
                     )}
 
                     {showGoogleViewer && (
@@ -87,10 +89,16 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, fileName, f
                     )}
 
                     {!isImage && !isVideo && !isPDF && !showGoogleViewer && (
-                        <div style={{ textAlign: "center", color: "#64748b" }}>
-                            <p style={{ marginBottom: "1rem" }}>Preview not available for this file type.</p>
-                            <a href={fileUrl} download className="btn btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 1rem", background: "#2563eb", color: "white", borderRadius: "6px", textDecoration: "none" }}>
-                                <Download size={18} /> Download to View
+                        <div style={{ textAlign: "center", color: "#64748b", padding: "2rem" }}>
+                            <p style={{ marginBottom: "1rem", fontSize: "1.1rem" }}>Preview unavailable for this file.</p>
+                            <a
+                                href={fileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="btn btn-primary"
+                                style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 1rem", background: "#2563eb", color: "white", borderRadius: "6px", textDecoration: "none" }}
+                            >
+                                <Download size={18} /> Open in New Tab
                             </a>
                         </div>
                     )}
