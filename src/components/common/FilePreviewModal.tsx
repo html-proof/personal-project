@@ -14,9 +14,12 @@ interface FilePreviewModalProps {
 export default function FilePreviewModal({ isOpen, onClose, fileUrl, fileName, fileType }: FilePreviewModalProps) {
     if (!isOpen) return null;
 
-    const isImage = fileType.includes("image");
-    const isVideo = fileType.includes("video");
-    const isPDF = fileType.includes("pdf");
+    const safeFileType = fileType || "";
+    const safeFileName = fileName || "";
+
+    const isImage = safeFileType.includes("image") || safeFileName.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i);
+    const isVideo = safeFileType.includes("video") || safeFileName.match(/\.(mp4|webm|ogg|mov)$/i);
+    const isPDF = safeFileType.includes("pdf") || safeFileName.match(/\.pdf$/i);
 
     // Generic check for any document that isn't media or PDF
     // Google Viewer supports many formats including .ai, .psd, .dxf, .svg, .eps, .ps, .ttf, .xps, .zip, .rar
@@ -25,9 +28,9 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, fileName, f
         !isVideo &&
         !isPDF &&
         (
-            fileType.includes("application/") ||
-            fileType.includes("text/") ||
-            fileName.match(/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv|odt|ods|odp|ai|psd|dxf|eps|ps|xps|ttf|pages|numbers|key)$/i)
+            safeFileType.includes("application/") ||
+            safeFileType.includes("text/") ||
+            safeFileName.match(/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv|odt|ods|odp|ai|psd|dxf|eps|ps|xps|ttf|pages|numbers|key|json|xml|c|cpp|h|java|py|js|ts|html|css|php|rb|go|rs|swift|kt)$/i)
         );
 
     const showGoogleViewer = isGoogleDocSupported;

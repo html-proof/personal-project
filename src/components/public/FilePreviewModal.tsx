@@ -171,9 +171,13 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
         }
     };
 
-    const isImage = file.fileType.startsWith("image/");
-    const isVideo = file.fileType.startsWith("video/");
-    const isPdf = file.fileType.includes("pdf");
+    const fileType = file.fileType || "";
+    const fileName = file.title || "";
+
+    const isImage = fileType.startsWith("image/") || fileName.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i);
+    const isVideo = fileType.startsWith("video/") || fileName.match(/\.(mp4|webm|ogg|mov)$/i);
+    // Explicitly check for PDF via type or extension
+    const isPdf = fileType.includes("pdf") || fileName.match(/\.pdf$/i);
 
     // Expanded support for Google Drive Viewer (Docs, Sheets, Slides, Text, Code, etc)
     const isGoogleDocSupported =
@@ -181,9 +185,9 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
         !isVideo &&
         !isPdf &&
         (
-            file.title.match(/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv|odt|ods|odp|ai|psd|dxf|eps|ps|xps|ttf|pages|numbers|key)$/i) ||
-            file.fileType.includes("application/") ||
-            file.fileType.includes("text/")
+            fileName.match(/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv|odt|ods|odp|ai|psd|dxf|eps|ps|xps|ttf|pages|numbers|key|json|xml|c|cpp|h|java|py|js|ts|html|css|php|rb|go|rs|swift|kt)$/i) ||
+            fileType.includes("application/") ||
+            fileType.includes("text/")
         );
 
     const showGoogleViewer = isGoogleDocSupported;
