@@ -17,21 +17,20 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, fileName, f
     const isImage = fileType.includes("image");
     const isVideo = fileType.includes("video");
     const isPDF = fileType.includes("pdf");
-    // Simple check for office files based on type or extension if needed, 
-    // but usually these have specific mime types or we can imply from extension in name.
-    // Common Office Mime Types:
-    // application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document
-    // application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-    // application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation
-    const isOffice =
-        fileType.includes("word") ||
-        fileType.includes("excel") ||
-        fileType.includes("spreadsheet") ||
-        fileType.includes("powerpoint") ||
-        fileType.includes("presentation") ||
-        fileName.endsWith(".doc") || fileName.endsWith(".docx") ||
-        fileName.endsWith(".xls") || fileName.endsWith(".xlsx") ||
-        fileName.endsWith(".ppt") || fileName.endsWith(".pptx");
+
+    // Generic check for any document that isn't media or PDF
+    // Google Viewer supports many formats including .ai, .psd, .dxf, .svg, .eps, .ps, .ttf, .xps, .zip, .rar
+    const isGoogleDocSupported =
+        !isImage &&
+        !isVideo &&
+        !isPDF &&
+        (
+            fileType.includes("application/") ||
+            fileType.includes("text/") ||
+            fileName.match(/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv|odt|ods|odp|ai|psd|dxf|eps|ps|xps|ttf|pages|numbers|key)$/i)
+        );
+
+    const showGoogleViewer = isGoogleDocSupported;
 
     return (
         <div style={{
@@ -76,14 +75,15 @@ export default function FilePreviewModal({ isOpen, onClose, fileUrl, fileName, f
                         <PDFViewer fileUrl={fileUrl} fileName={fileName} />
                     )}
 
-                    {isOffice && (
+                    {showGoogleViewer && (
                         <iframe
-                            src={`https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`}
+                            src={`https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`}
                             style={{ width: "100%", height: "100%", border: "none" }}
+                            title="Document Preview"
                         />
                     )}
 
-                    {!isImage && !isVideo && !isPDF && !isOffice && (
+                    {!isImage && !isVideo && !isPDF && !showGoogleViewer && (
                         <div style={{ textAlign: "center", color: "#64748b" }}>
                             <p style={{ marginBottom: "1rem" }}>Preview not available for this file type.</p>
                             <a href={fileUrl} download className="btn btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 1rem", background: "#2563eb", color: "white", borderRadius: "6px", textDecoration: "none" }}>

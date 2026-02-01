@@ -174,13 +174,19 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
     const isImage = file.fileType.startsWith("image/");
     const isVideo = file.fileType.startsWith("video/");
     const isPdf = file.fileType.includes("pdf");
-    const isOfficeDoc =
-        file.fileType.includes("msword") ||
-        file.fileType.includes("wordprocessingml") ||
-        file.fileType.includes("ms-excel") ||
-        file.fileType.includes("spreadsheetml") ||
-        file.fileType.includes("ms-powerpoint") ||
-        file.fileType.includes("presentationml");
+
+    // Expanded support for Google Drive Viewer (Docs, Sheets, Slides, Text, Code, etc)
+    const isGoogleDocSupported =
+        !isImage &&
+        !isVideo &&
+        !isPdf &&
+        (
+            file.title.match(/\.(doc|docx|xls|xlsx|ppt|pptx|txt|rtf|csv|odt|ods|odp|ai|psd|dxf|eps|ps|xps|ttf|pages|numbers|key)$/i) ||
+            file.fileType.includes("application/") ||
+            file.fileType.includes("text/")
+        );
+
+    const showGoogleViewer = isGoogleDocSupported;
 
     return (
         <div
@@ -313,7 +319,7 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                         </div>
                     )}
 
-                    {isOfficeDoc && (
+                    {showGoogleViewer && (
                         <iframe
                             src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.fileUrl)}&embedded=true`}
                             style={{
@@ -324,10 +330,11 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                                 borderRadius: "8px",
                                 boxShadow: "0 20px 50px rgba(0,0,0,0.5)"
                             }}
+                            title="Document Preview"
                         />
                     )}
 
-                    {!isImage && !isVideo && !isPdf && !isOfficeDoc && (
+                    {!isImage && !isVideo && !isPdf && !showGoogleViewer && (
                         <div style={{
                             background: "var(--surface)",
                             padding: "3rem",
@@ -335,13 +342,13 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                             textAlign: "center",
                             color: "var(--text-main)"
                         }}>
-                            <FileText size={64} style={{ marginBottom: "1rem", color: "var(--primary)" }} />
+                            <FileText size={64} style={{ marginBottom: "1rem" }} />
                             <h3 style={{ marginBottom: "0.5rem" }}>Preview not available</h3>
                             <p style={{ color: "var(--text-muted)", marginBottom: "2rem" }}>
                                 This file type cannot be previewed directly.
                             </p>
                             <button onClick={handleDownload} className="btn btn-primary">
-                                Download File
+                                <Download size={18} style={{ marginRight: "0.5rem" }} /> Download
                             </button>
                         </div>
                     )}
