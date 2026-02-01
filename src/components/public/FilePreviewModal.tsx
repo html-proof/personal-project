@@ -308,9 +308,8 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
 
                     {isPdf && (
                         <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
-                            <object
-                                data={file.fileUrl}
-                                type="application/pdf"
+                            <iframe
+                                src={file.fileUrl}
                                 style={{
                                     width: "100%",
                                     height: "100%",
@@ -318,17 +317,8 @@ export default function FilePreviewModal({ file, onClose }: FilePreviewModalProp
                                     borderRadius: "8px",
                                     boxShadow: "0 20px 50px rgba(0,0,0,0.5)"
                                 }}
-                            >
-                                <embed
-                                    src={file.fileUrl}
-                                    type="application/pdf"
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        border: "none"
-                                    }}
-                                />
-                            </object>
+                                title={file.title}
+                            />
                         </div>
                     )}
 
