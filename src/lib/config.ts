@@ -40,8 +40,7 @@ export const CONFIG = {
 
 // Utility functions
 export const isAllowedEmail = (email: string): boolean => {
-    // return email.endsWith(CONFIG.ALLOWED_EMAIL_DOMAIN);
-    return true; // Restriction paused requests
+    return email.endsWith(CONFIG.ALLOWED_EMAIL_DOMAIN);
 };
 
 export const isAllowedFileType = (fileType: string): boolean => {
