@@ -6,6 +6,8 @@ export const CONFIG = {
 
     // File Upload
     MAX_FILE_SIZE: 50 * 1024 * 1024, // 50MB
+
+    // MIME types
     ALLOWED_FILE_TYPES: [
         // Documents
         'application/pdf',
@@ -16,15 +18,40 @@ export const CONFIG = {
         'application/vnd.ms-powerpoint',
         'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'text/plain',
+
         // Images
         'image/jpeg',
         'image/png',
         'image/gif',
         'image/webp',
+
         // Videos
         'video/mp4',
         'video/webm',
         'video/quicktime',
+    ],
+
+    // Extension fallback (IMPORTANT for pptx, docx, etc.)
+    ALLOWED_EXTENSIONS: [
+        'pdf',
+        'doc',
+        'docx',
+        'xls',
+        'xlsx',
+        'ppt',
+        'pptx',
+        'txt',
+        'csv',
+        'jpg',
+        'jpeg',
+        'png',
+        'gif',
+        'webp',
+        'mp4',
+        'webm',
+        'mov',
+        'avi',
+        'mkv'
     ],
 
     // Password Requirements
@@ -38,15 +65,33 @@ export const CONFIG = {
     UNDO_DURATION_MS: 30000, // 30 seconds
 } as const;
 
-// Utility functions
+
+// Email validation
 export const isAllowedEmail = (email: string): boolean => {
     return email.endsWith(CONFIG.ALLOWED_EMAIL_DOMAIN);
 };
 
-export const isAllowedFileType = (fileType: string): boolean => {
-    return CONFIG.ALLOWED_FILE_TYPES.includes(fileType as any);
+
+// ✅ FIXED: Now accepts File instead of string
+export const isAllowedFileType = (file: File): boolean => {
+    const mimeType = file.type;
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+
+    // 1) Check MIME type
+    if (mimeType && CONFIG.ALLOWED_FILE_TYPES.includes(mimeType as any)) {
+        return true;
+    }
+
+    // 2) Fallback to extension (handles pptx/docx when browser sends wrong type)
+    if (CONFIG.ALLOWED_EXTENSIONS.includes(ext)) {
+        return true;
+    }
+
+    return false;
 };
 
+
+// Password validation
 export const validatePassword = (password: string): { valid: boolean; message?: string } => {
     if (password.length < CONFIG.PASSWORD_MIN_LENGTH) {
         return { valid: false, message: `Password must be at least ${CONFIG.PASSWORD_MIN_LENGTH} characters` };
@@ -66,10 +111,11 @@ export const validatePassword = (password: string): { valid: boolean; message?: 
     return { valid: true };
 };
 
+
 // Input sanitization
 export const sanitizeInput = (input: string): string => {
     return input
         .trim()
-        .replace(/[<>]/g, '') // Remove < and > to prevent basic XSS
-        .replace(/\s+/g, ' '); // Normalize whitespace
+        .replace(/[<>]/g, '')
+        .replace(/\s+/g, ' ');
 };
