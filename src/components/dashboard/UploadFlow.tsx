@@ -25,7 +25,8 @@ import {
 } from "@/lib/firebase/firestore";
 
 import { FolderPlus } from "lucide-react";
-import { uploadFile } from "@/lib/supabase/storage";
+import { uploadFile as uploadToSupabase } from "@/lib/supabase/storage";
+import { uploadFile as uploadToFirebase } from "@/lib/firebase/storage";
 import { useAuth } from "@/lib/firebase/auth";
 import { useToast } from "@/context/ToastContext";
 import { CONFIG, isAllowedFileType, sanitizeInput } from "@/lib/config";
@@ -291,7 +292,15 @@ export default function UploadFlow() {
             const safeName = file.name.replace(/\s+/g, "_");
             const path = `uploads/${user.uid}/${Date.now()}_${uniqueId}_${safeName}`;
 
-            const url = await uploadFile(file, path);
+            let url: string;
+            try {
+              // Try Supabase first
+              url = await uploadToSupabase(file, path);
+            } catch (supabaseError: any) {
+              console.warn(`Supabase upload failed for ${file.name}, falling back to Firebase:`, supabaseError.message);
+              // Fallback to Firebase Storage
+              url = await uploadToFirebase(file, path);
+            }
 
             await createNote({
               departmentId: selectedDept,
@@ -308,7 +317,10 @@ export default function UploadFlow() {
             newProgress[file.name] = "success";
           } catch (error) {
             console.error(`Failed to upload ${file.name}`, error);
+            const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+            console.error(`Error details for ${file.name}:`, errorMsg);
             newProgress[file.name] = "error";
+            addToast(`Failed to upload ${file.name}: ${errorMsg}`, "error");
           }
 
           setProgress({ ...newProgress });
