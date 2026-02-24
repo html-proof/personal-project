@@ -130,7 +130,7 @@ button {
   border: 1px solid var(--border);
 }
 
-/* Animations */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -198,7 +198,7 @@ button {
 .animate-fade-in {
   animation: fadeInUp 0.8s ease-out forwards;
   opacity: 0;
-  /* Star hidden */
+  
 }
 
 .delay-100 {

@@ -38,7 +38,8 @@ import FilePreviewModal from "@/components/common/FilePreviewModal";
 import MoveItemsModal from "./MoveItemsModal";
 import ConfirmationModal from "@/components/common/ConfirmationModal";
 import { createFolder } from "@/lib/firebase/firestore";
-import { uploadFile } from "@/lib/supabase/storage";
+import { uploadFile as uploadToSupabase } from "@/lib/supabase/storage";
+import { uploadFile as uploadToFirebase } from "@/lib/firebase/storage";
 import { FolderPlus, RefreshCw, Upload } from "lucide-react";
 import CreateFolderModal from "./CreateFolderModal";
 
@@ -164,7 +165,16 @@ export default function MyNotes() {
         try {
             const uniqueId = Math.random().toString(36).substring(2, 10);
             const path = `uploads/${user?.uid}/${Date.now()}_${uniqueId}_${file.name}`;
-            const url = await uploadFile(file, path);
+
+            let url: string;
+            try {
+                url = await uploadToSupabase(file, path);
+            } catch (supabaseError: unknown) {
+                const fallbackReason =
+                    supabaseError instanceof Error ? supabaseError.message : "Unknown error";
+                console.warn("Supabase replace upload failed, falling back to Firebase:", fallbackReason);
+                url = await uploadToFirebase(file, path);
+            }
 
             await updateNote(replacingNoteId, {
                 fileUrl: url,

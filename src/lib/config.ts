@@ -1,4 +1,3 @@
-// Configuration constants for the application
 
 export const CONFIG = {
     // Authentication

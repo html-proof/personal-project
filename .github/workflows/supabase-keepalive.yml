@@ -1,0 +1,48 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Validate Supabase secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Missing SUPABASE_URL or SUPABASE_ANON_KEY GitHub secrets."
+            exit 1
+          fi
+
+      - name: Ping Supabase endpoint
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          HEALTH_URL="${SUPABASE_URL%/}/rest/v1/"
+          for attempt in 1 2 3 4 5; do
+            code=$(curl --silent --show-error --output /tmp/supabase_ping.txt --write-out "%{http_code}" \
+              -H "apikey: $SUPABASE_ANON_KEY" \
+              -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+              -H "Accept: application/json" \
+              "$HEALTH_URL")
+
+            if [ "$code" -ge 200 ] && [ "$code" -lt 500 ] && [ "$code" != "000" ]; then
+              echo "Supabase is reachable (HTTP $code) on attempt $attempt."
+              exit 0
+            fi
+
+            echo "Attempt $attempt failed with HTTP $code. Retrying in 20 seconds..."
+            sleep 20
+          done
+
+          echo "Supabase did not respond after retries."
+          cat /tmp/supabase_ping.txt || true
+          exit 1

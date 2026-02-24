@@ -51,6 +51,8 @@ A modern, centralized e-learning repository built for the Notes . This platform 
    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
    NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
 4. **Run Development Server**
@@ -58,6 +60,13 @@ A modern, centralized e-learning repository built for the Notes . This platform 
    npm run dev
    ```
    Visit [http://localhost:3000](http://localhost:3000) to see the app.
+
+### Supabase Keep-Alive (GitHub Actions)
+
+If your Supabase free project sleeps during low traffic, configure these repository secrets to keep it warm via `.github/workflows/supabase-keepalive.yml`:
+
+- `SUPABASE_URL` (example: `https://your-project-ref.supabase.co`)
+- `SUPABASE_ANON_KEY` (anon key from Supabase API settings)
 
 ## 📂 Project Structure
 

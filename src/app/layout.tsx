@@ -28,7 +28,6 @@ export const viewport: Viewport = {
     themeColor: "#2563eb",
 };
 
-import DisableDevTools from "@/components/common/DisableDevTools";
 import { UndoProvider } from "@/context/UndoContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ToastProvider } from "@/context/ToastContext";
@@ -64,7 +63,6 @@ export default function RootLayout({
                 <AmpAutoAds type="adsense"
                     data-ad-client="ca-pub-6253589071371136">
                 </AmpAutoAds>
-                <DisableDevTools />
                 <ThemeProvider>
                     <UndoProvider>
                         <ToastProvider>
